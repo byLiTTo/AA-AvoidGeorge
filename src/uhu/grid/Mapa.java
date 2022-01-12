@@ -176,26 +176,6 @@ public class Mapa {
 			visualiza();
 			break;
 		}
-
-//		ACTIONS lastAction = percepcion.getAvatarLastAction();
-//		switch (lastAction) {
-//		case ACTION_UP:
-//			this.avatarLastPosition.setY(this.avatar.getY() - 1);
-//			break;
-//		case ACTION_DOWN:
-//			this.avatarLastPosition.setY(this.avatar.getY() + 1);
-//			break;
-//		case ACTION_LEFT:
-//			this.avatarLastPosition.setX(this.avatar.getX() + 1);
-//			break;
-//		case ACTION_RIGHT:
-//			this.avatarLastPosition.setX(this.avatar.getX() - 1);
-//			break;
-//		default:
-//			this.avatarLastPosition = this.avatar;
-//			break;
-//		}
-
 	}
 
 	/**
@@ -225,15 +205,6 @@ public class Mapa {
 				for (int j = 0; j < inmovable[i].size(); j++) {
 					int x = (int) Math.ceil(inmovable[i].get(j).position.x / this.bloque);
 					int y = (int) Math.ceil(inmovable[i].get(j).position.y / this.bloque);
-
-//					switch (inmovable[i].get(j).itype) {
-//					case Constantes.muro_tipo:
-//						this.tablero.get(x).get(y).setEstado(Constantes.MURO);
-//						break;
-//					default:
-//						this.tablero.get(x).get(y).setEstado(Constantes.VACIO);
-//						break;
-//					}
 					
 					this.tablero.get(x).get(y).setEstado(MURO);
 					
@@ -245,28 +216,28 @@ public class Mapa {
 		}
 	}
 
-	private void setPortalsPositions(ArrayList<Observation>[] portals) {
-		if (portals != null) {
-			for (int i = 0; i < portals.length; i++) {
-				for (int j = 0; j < portals[i].size(); j++) {
-					int x = (int) portals[i].get(j).position.x / this.bloque;
-					int y = (int) portals[i].get(j).position.y / this.bloque;
-
-//					switch (portals[i].get(j).itype) {
-//					case Constantes.meta_tipo:
-//						this.tablero.get(x).get(y).setEstado(Constantes.META);
-//						break;
-//					default:
-//						this.tablero.get(x).get(y).setEstado(Constantes.VACIO);
-//						break;
-//					}
-
-					this.tablero.get(x).get(y).setEstado("!");
-					this.columnaPortal = x;
-				}
-			}
-		}
-	}
+//	private void setPortalsPositions(ArrayList<Observation>[] portals) {
+//		if (portals != null) {
+//			for (int i = 0; i < portals.length; i++) {
+//				for (int j = 0; j < portals[i].size(); j++) {
+//					int x = (int) portals[i].get(j).position.x / this.bloque;
+//					int y = (int) portals[i].get(j).position.y / this.bloque;
+//
+////					switch (portals[i].get(j).itype) {
+////					case Constantes.meta_tipo:
+////						this.tablero.get(x).get(y).setEstado(Constantes.META);
+////						break;
+////					default:
+////						this.tablero.get(x).get(y).setEstado(Constantes.VACIO);
+////						break;
+////					}
+//
+//					this.tablero.get(x).get(y).setEstado("!");
+//					this.columnaPortal = x;
+//				}
+//			}
+//		}
+//	}
 
 	/**
 	 * Asigna a las casillas, donde se encuentran los objetos moviles, su estado
