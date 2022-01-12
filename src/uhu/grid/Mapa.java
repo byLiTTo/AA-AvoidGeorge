@@ -11,6 +11,7 @@ import core.game.Observation;
 import core.game.StateObservation;
 import ontology.Types.ACTIONS;
 import tools.Vector2d;
+import uhu.Constantes;
 
 import static uhu.Constantes.*;
 
@@ -32,6 +33,10 @@ public class Mapa {
 
 	private Casilla avatar;
 	private Casilla avatarLastPosition;
+	
+	private Casilla enemy;
+	private Casilla enemyLastPosition;
+	
 	private int columnaPortal;
 
 	// =============================================================================
@@ -54,6 +59,7 @@ public class Mapa {
 		this.tablero = new ArrayList<ArrayList<Casilla>>();
 
 		this.avatar = new Casilla();
+		this.enemy = new Casilla();
 		
 		actualiza(percepcion, Visualizaciones.NADA);
 	}
@@ -228,8 +234,11 @@ public class Mapa {
 //						this.tablero.get(x).get(y).setEstado(Constantes.VACIO);
 //						break;
 //					}
-
+					
 					this.tablero.get(x).get(y).setEstado(MURO);
+					
+//					this.tablero.get(x).get(y).setEstado(Integer.toString(inmovable[i].get(j).itype));
+//					this.tablero.get(x).get(y).setEstado(Integer.toString(inmovable[i].get(j).category));
 
 				}
 			}
@@ -252,7 +261,7 @@ public class Mapa {
 //						break;
 //					}
 
-					this.tablero.get(x).get(y).setEstado("NAH");
+					this.tablero.get(x).get(y).setEstado("!");
 					this.columnaPortal = x;
 				}
 			}
@@ -309,9 +318,54 @@ public class Mapa {
 					int x = (int) NPC[i].get(j).position.x / this.bloque;
 					int y = (int) NPC[i].get(j).position.y / this.bloque;
 
-//					this.tablero.get(x).get(y).setEstado(CAMELLO);
+					switch (NPC[i].get(j).itype) {
+					case Constantes.relax_tipo:
+						this.tablero.get(x).get(y).setEstado(Constantes.RELAJADO);
+						break;
+					case Constantes.angry_tipo:
+						this.tablero.get(x).get(y).setEstado(Constantes.ENFADADO);
+						break;
+					case Constantes.enemy_tipo:
+						this.tablero.get(x).get(y).setEstado(Constantes.ENEMIGO);
+						break;
+					default:
+						this.tablero.get(x).get(y).setEstado(Constantes.VACIO);
+						break;
+					}
+									
 //					this.tablero.get(x).get(y).setEstado(Integer.toString(NPC[i].get(j).itype));
-					this.tablero.get(x).get(y).setEstado(Integer.toString(NPC[i].get(j).category));
+//					this.tablero.get(x).get(y).setEstado(Integer.toString(NPC[i].get(j).category));
+				}
+			}
+		}
+	}
+	
+	private void setResource(ArrayList<Observation>[] resource) {
+		if (resource != null) {
+
+			for (int i = 0; i < resource.length; i++) {
+				for (int j = 0; j < resource[i].size(); j++) {
+
+					int x = (int) resource[i].get(j).position.x / this.bloque;
+					int y = (int) resource[i].get(j).position.y / this.bloque;
+
+//					switch (resource[i].get(j).itype) {
+//					case Constantes.relax_tipo:
+//						this.tablero.get(x).get(y).setEstado(Constantes.RELAJADO);
+//						break;
+//					case Constantes.angry_tipo:
+//						this.tablero.get(x).get(y).setEstado(Constantes.ENFADADO);
+//						break;
+//					case Constantes.enemy_tipo:
+//						this.tablero.get(x).get(y).setEstado(Constantes.ENEMIGO);
+//						break;
+//					default:
+//						this.tablero.get(x).get(y).setEstado(Constantes.VACIO);
+//						break;
+//					}
+									
+					this.tablero.get(x).get(y).setEstado(Integer.toString(resource[i].get(j).itype));
+//					this.tablero.get(x).get(y).setEstado(Integer.toString(resource[i].get(j).category));
 				}
 			}
 		}

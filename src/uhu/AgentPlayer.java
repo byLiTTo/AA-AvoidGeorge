@@ -14,6 +14,7 @@ import tools.ElapsedCpuTimer;
 public class AgentPlayer extends AbstractPlayer {
 
 	private Cerebro c;
+	private int o = 0;
 
 	// =============================================================================
 	// CONSTRUCTORES
@@ -46,7 +47,12 @@ public class AgentPlayer extends AbstractPlayer {
 		c.percibe(percepcion);
 		ACTIONS accion = c.pensar(percepcion);
 
-		return accion;
+		if (o < 10) {
+			return ACTIONS.ACTION_USE;
+		} else {
+			o++;
+			return accion;
+		}
 	}
 
 	@Override
