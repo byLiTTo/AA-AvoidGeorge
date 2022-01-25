@@ -4,17 +4,12 @@
 package uhu;
 
 import java.awt.Dimension;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Scanner;
 
 import core.game.StateObservation;
 import ontology.Types.ACTIONS;
+import uhu.Juego03.*;
 import uhu.arbol.*;
 import uhu.grid.*;
 import uhu.mdp.QLearning;
@@ -47,8 +42,18 @@ public class Cerebro {
 
 	private double reward;
 	private double globalReward;
-	private int racha = 1;
-	private Casilla nextToLastCasilla = null;
+//	private int racha = 1;
+//	private Casilla nextToLastCasilla = null;
+
+	private EnemigoAbajo enemigoAbajo;
+	private EnemigoArriba enemigoArriba;
+	private EnemigoIzquierda enemigoIzquierda;
+	private EnemigoDerecha enemigoDerecha;
+
+	private Estado huyendoArriba;
+	private Estado huyendoAbajo;
+	private Estado huyendoIzquierda;
+	private Estado huyendoDerecha;
 
 	// =============================================================================
 	// CONSTRUCTORES
@@ -80,6 +85,9 @@ public class Cerebro {
 //			this.orientacion = ORIENTACION.NORTE;
 //		}
 
+		this.currentState = STATES.HUYENDO_ABAJO;
+		this.lastState = STATES.HUYENDO_ABAJO;
+
 		this.qlearning = new QLearning(getStates(), getActions(), new String("QTABLE.txt"));
 
 		this.reward = 0;
@@ -95,25 +103,25 @@ public class Cerebro {
 	/**
 	 * Devuelve el mapa que tiene el cerebro en su memoria.
 	 * 
-	 * @return Mapa generado.
+	 * @return Mapa : devuelve el mapa generado.
 	 */
 	public Mapa getMapa() {
 		return this.mapa;
 	}
 
 	/**
-	 * Devuelve la �ltima acci�n realizada
+	 * Devuelve la ultima accion realizada
 	 * 
-	 * @return Devuelve una acci�n
+	 * @return ACTIONS : Devuelve una accion
 	 */
 	public ACTIONS getLastAction() {
 		return this.lastAction;
 	}
 
 	/**
-	 * Devuelve la orientaci�n del agente
+	 * Devuelve la orientacion del agente
 	 * 
-	 * @return Devuelve una orientaci�n
+	 * @return ORIENTATION : Devuelve una orientaci�n
 	 */
 	public ORIENTACION getOrientacion() {
 		return this.orientacion;
@@ -122,7 +130,7 @@ public class Cerebro {
 	/**
 	 * Devuelve el timer actual
 	 * 
-	 * @return Devuelve el n�mero de ticks jugados por el agente
+	 * @return int : devuelve el numero de ticks jugados por el agente
 	 */
 	public int getTimer() {
 		return this.qlearning.getTimer();
@@ -157,17 +165,17 @@ public class Cerebro {
 	 * @param percepcion Percepci�n del juego
 	 */
 	private void actualizaState(StateObservation percepcion) {
-//		this.lastState = this.currentState;
-//		this.currentState = this.raiz.decidir(this);
+		this.lastState = this.currentState;
+		this.currentState = this.raiz.decidir(this);
 	}
 
 	/**
 	 * Recorre el arbol de decision y devuelve una accion a realizar.
 	 * 
-	 * @return Accion a realizar tras recorrer los nodos el arbol.
+	 * @return ACTIONS : accion a realizar tras recorrer los nodos el arbol.
 	 */
 	public ACTIONS pensar(StateObservation percepcion) {
-//		this.lastAction = this.qlearning.nextOnlyOneBestAction(currentState);
+		this.lastAction = this.qlearning.nextOnlyOneBestAction(currentState);
 //		
 //		switch(this.lastAction) {
 //		case ACTION_UP:
@@ -187,16 +195,16 @@ public class Cerebro {
 //		System.out.println("Orientacion: " + this.orientacion);
 //		
 //		this.mapa.visualiza();
-//		System.out.println("\nEstado: " + this.currentState);
+		System.out.println("\nEstado: " + this.currentState);
 
-		return null;
+		return lastAction;
 	}
 
 	/**
 	 * Entrena el agente para que aprenda a jugar a trav�s del algoritmo Q-learning
 	 * 
 	 * @param percepcion Percepci�n del juego
-	 * @return Devuelve una acci�n
+	 * @return ACTIONS : devuelve una acci�n
 	 */
 	public ACTIONS entrenar(StateObservation percepcion) {
 		double reward = getReward(lastState, lastAction, currentState);
@@ -224,7 +232,7 @@ public class Cerebro {
 	/**
 	 * Devuelve la recomensa total obtenida por el agente
 	 * 
-	 * @return Devuelve la recompensa total
+	 * @return double : devuelve la recompensa total
 	 */
 	public double getGR() {
 		return this.globalReward;
@@ -240,42 +248,42 @@ public class Cerebro {
 	 * @param lastState    Estado anterior
 	 * @param lastAction   �ltima acci�n realizada
 	 * @param currentState Estado actual
-	 * @return Devuelve la recompensa calculada
+	 * @return double : devuelve la recompensa calculada
 	 */
 	private double getReward(STATES lastState, ACTIONS lastAction, STATES currentState) {
-		this.reward = -50;
-		Casilla currentCasilla = this.mapa.getAvatar();
-		Casilla lastCasilla = this.mapa.getLastAvatar();
-
-		switch (lastState) {
-		case ESTADO_4:
-		case ESTADO_8:
-		case ESTADO_12:
-			if (this.checkNorthMovement(lastCasilla.getY(), currentCasilla.getY()))
-				this.reward = 50;
-			break;
-		case ESTADO_2:
-		case ESTADO_6:
-		case ESTADO_10:
-		case ESTADO_13:
-			if (this.checkSouthMovement(lastCasilla.getY(), currentCasilla.getY()))
-				this.reward = 50;
-			break;
-		case ESTADO_1:
-		case ESTADO_5:
-		case ESTADO_9:
-			if (this.checkEastMovement(lastCasilla.getX(), currentCasilla.getX()))
-				this.reward = 50;
-			break;
-		case ESTADO_3:
-		case ESTADO_7:
-		case ESTADO_11:
-			if (this.checkWestMovement(lastCasilla.getX(), currentCasilla.getX()))
-				this.reward = 50;
-			break;
-		}
-
-		return reward;
+//		this.reward = -50;
+//		Casilla currentCasilla = this.mapa.getAvatar();
+//		Casilla lastCasilla = this.mapa.getLastAvatar();
+//
+//		switch (lastState) {
+//		case ESTADO_4:
+//		case ESTADO_8:
+//		case ESTADO_12:
+//			if (this.checkNorthMovement(lastCasilla.getY(), currentCasilla.getY()))
+//				this.reward = 50;
+//			break;
+//		case ESTADO_2:
+//		case ESTADO_6:
+//		case ESTADO_10:
+//		case ESTADO_13:
+//			if (this.checkSouthMovement(lastCasilla.getY(), currentCasilla.getY()))
+//				this.reward = 50;
+//			break;
+//		case ESTADO_1:
+//		case ESTADO_5:
+//		case ESTADO_9:
+//			if (this.checkEastMovement(lastCasilla.getX(), currentCasilla.getX()))
+//				this.reward = 50;
+//			break;
+//		case ESTADO_3:
+//		case ESTADO_7:
+//		case ESTADO_11:
+//			if (this.checkWestMovement(lastCasilla.getX(), currentCasilla.getX()))
+//				this.reward = 50;
+//			break;
+//		}
+//
+		return 0;
 	}
 
 	/**
@@ -283,8 +291,8 @@ public class Cerebro {
 	 * 
 	 * @param a Posici�n Y de la �ltima casilla
 	 * @param b Posici�n Y de la casilla actual
-	 * @return Devuelve true si el agente se mueve hacia el norte. False en caso
-	 *         contrario
+	 * @return boolean : devuelve true si el agente se mueve hacia el norte. False
+	 *         en caso contrario
 	 */
 	private boolean checkNorthMovement(int a, int b) {
 		if ((a - b) > 0)
@@ -298,8 +306,8 @@ public class Cerebro {
 	 * 
 	 * @param a Posici�n Y de la �ltima casilla
 	 * @param b Posici�n Y de la casilla actual
-	 * @return Devuelve true si el agente se mueve hacia el sur. False en caso
-	 *         contrario
+	 * @return booelan : devuelve true si el agente se mueve hacia el sur. False en
+	 *         caso contrario
 	 */
 	private boolean checkSouthMovement(int a, int b) {
 		if ((a - b) < 0)
@@ -313,8 +321,8 @@ public class Cerebro {
 	 * 
 	 * @param a Posici�n X de la �ltima casilla
 	 * @param b Posici�n X de la casilla actual
-	 * @return Devuelve true si el agente se mueve hacia el este. False en caso
-	 *         contrario
+	 * @return boolean : devuelve true si el agente se mueve hacia el este. False en
+	 *         caso contrario
 	 */
 	private boolean checkEastMovement(int a, int b) {
 		if ((b - a) > 0)
@@ -328,8 +336,8 @@ public class Cerebro {
 	 * 
 	 * @param a Posici�n X de la �ltima casilla
 	 * @param b Posici�n X de la casilla actual
-	 * @return Devuelve true si el agente se mueve hacia el oeste. False en caso
-	 *         contrario
+	 * @return boolean : devuelve true si el agente se mueve hacia el oeste. False
+	 *         en caso contrario
 	 */
 	private boolean checkWestMovement(int a, int b) {
 		if ((b - a) < 0)
@@ -341,19 +349,18 @@ public class Cerebro {
 	/**
 	 * Devuelve los estados en los que se puede encontrar el agente
 	 * 
-	 * @return Devuelve un ArrayList con los estados
+	 * @return ArrayList STATES : devuelve un ArrayList con los estados
 	 */
 	private ArrayList<STATES> getStates() {
 		// CAMINODERECHA, CAMINOABAJO, CAMINOARRIBA, CAMINOATRAS
-		return new ArrayList<STATES>(Arrays.asList(STATES.ESTADO_1, STATES.ESTADO_2, STATES.ESTADO_3, STATES.ESTADO_4,
-				STATES.ESTADO_5, STATES.ESTADO_6, STATES.ESTADO_7, STATES.ESTADO_8, STATES.ESTADO_9, STATES.ESTADO_10,
-				STATES.ESTADO_11, STATES.ESTADO_12, STATES.ESTADO_13));
+		return new ArrayList<STATES>(Arrays.asList(STATES.HUYENDO_ARRIBA, STATES.HUYENDO_ABAJO,
+				STATES.HUYENDO_IZQUIERDA, STATES.HUYENDO_DERECHA));
 	}
 
 	/**
 	 * Devuelve las acciones que puede realizar al agente
 	 * 
-	 * @return Devuelve un ArrayList con las acciones
+	 * @return ArrayList ACTIONS : devuelve un ArrayList con las acciones
 	 */
 	private ArrayList<ACTIONS> getActions() {
 		return new ArrayList<ACTIONS>(
@@ -361,10 +368,32 @@ public class Cerebro {
 	}
 
 	/**
-	 * Crea el arbol de decisi�n del agente
+	 * Crea el arbol de decision del agente
 	 */
 	private void generaArbol() {
+		this.enemigoArriba = new EnemigoArriba();
+		this.enemigoAbajo = new EnemigoAbajo();
+		this.enemigoIzquierda = new EnemigoIzquierda();
+		this.enemigoDerecha = new EnemigoDerecha();
 
+		this.huyendoArriba = new Estado(STATES.HUYENDO_ARRIBA);
+		this.huyendoAbajo = new Estado(STATES.HUYENDO_ABAJO);
+		this.huyendoIzquierda = new Estado(STATES.HUYENDO_IZQUIERDA);
+		this.huyendoDerecha = new Estado(STATES.HUYENDO_DERECHA);
+
+		this.enemigoArriba.setYes(this.huyendoAbajo);
+		this.enemigoArriba.setNo(this.enemigoAbajo);
+
+		this.enemigoAbajo.setYes(this.huyendoArriba);
+		this.enemigoAbajo.setNo(this.enemigoIzquierda);
+
+		this.enemigoIzquierda.setYes(this.huyendoDerecha);
+		this.enemigoIzquierda.setNo(this.enemigoDerecha);
+
+		this.enemigoDerecha.setYes(this.huyendoIzquierda);
+		this.enemigoDerecha.setNo(huyendoArriba);
+
+		this.raiz = this.enemigoArriba;
 	}
 
 	/**
@@ -392,6 +421,11 @@ public class Cerebro {
 		this.qlearning.saveTimer();
 	}
 
+	/**
+	 * Guarda el valor de la variable epsilon de la formula del qlearning.
+	 * 
+	 * @param path : Ruta del directorio donde se guarda el valor.
+	 */
 	public void saveEpsilon(String path) {
 		this.qlearning.saveEpsilon(path);
 	}

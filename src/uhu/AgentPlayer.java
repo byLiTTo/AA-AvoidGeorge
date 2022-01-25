@@ -48,13 +48,7 @@ public class AgentPlayer extends AbstractPlayer {
 
 		c.percibe(percepcion);
 		ACTIONS accion = c.pensar(percepcion);
-
-		if (o < 10) {
-			return ACTIONS.ACTION_NIL;
-		} else {
-			o++;
-			return accion;
-		}
+		return accion;
 	}
 
 	@Override
