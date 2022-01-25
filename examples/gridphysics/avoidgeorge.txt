@@ -19,12 +19,11 @@ BasicGame
         Timeout limit=1000 win=True
 
     InteractionSet
-
+        
         quiet george > transformTo stype=annoyed
         avatar george > killSprite scoreChange=-1
         annoyed cigarette > transformTo stype=quiet scoreChange=1
         human wall wall > stepBack
-
 
     LevelMapping
         g > floor george

@@ -3,8 +3,6 @@
  */
 package uhu.grid;
 
-import uhu.grid.Casilla;
-
 /**
  * @author LiTTo
  *

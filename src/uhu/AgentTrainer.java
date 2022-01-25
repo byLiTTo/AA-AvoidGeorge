@@ -7,6 +7,9 @@ import ontology.Types.ACTIONS;
 import tools.ElapsedCpuTimer;
 
 /**
+ * Clase agente encargada de ejecutar el entrenamiento de QLearing, es decir, la
+ * tabla q se actualiza a medida que se vaya entrenando.
+ * 
  * @author Carlos Garcia Silva
  * @author Daniel Perez Rodriguez
  *
@@ -39,7 +42,7 @@ public class AgentTrainer extends AbstractPlayer {
 	 * 
 	 * @param percepcion   Observacion del estado actual.
 	 * @param elapsedTimer Temporizador cuando vence la accion devuelta.
-	 * @return Una accion para el estado actual.
+	 * @return ACTIONS : accion a ejecutar en el tick actual.
 	 */
 	public ACTIONS act(StateObservation percepcion, ElapsedCpuTimer elapsedTimer) {
 

@@ -7,7 +7,8 @@ import uhu.Cerebro;
 import static uhu.Constantes.*;
 
 /**
- * @author LiTTo
+ * @author Carlos Garcia Silva
+ * @author Daniel Perez Rodriguez
  *
  */
 public abstract class NodoHoja extends NodoDecision {

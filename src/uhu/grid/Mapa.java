@@ -4,20 +4,19 @@
 package uhu.grid;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 
 import core.game.Observation;
 import core.game.StateObservation;
-import ontology.Types.ACTIONS;
 import tools.Vector2d;
 import uhu.Constantes;
+import uhu.Constantes.Visualizaciones;
 
 import static uhu.Constantes.*;
 
 /**
- * @author LiTTo
- *
+ * @author Carlos Garcia Silva
+ * @author Daniel Perez Rodriguez
+ * 
  */
 public class Mapa {
 
@@ -29,15 +28,21 @@ public class Mapa {
 	private int alto;
 	private int bloque;
 
+	private StateObservation percepcion;
+
 	private ArrayList<ArrayList<Casilla>> tablero;
 
-	private Casilla avatar;
+	private Casilla avatarCurrentPosition;
 	private Casilla avatarLastPosition;
-	
-	private Casilla enemy;
-	private Casilla enemyLastPosition;
-	
-	private int columnaPortal;
+
+	private Observation enemyCurrentObservation;
+	private Observation enemyLastObservation;
+
+//	private double currentDistance;
+//	private double lastDistance;
+
+	private int numCalmados;
+	private int numMolestos;
 
 	// =============================================================================
 	// CONSTRUCTORES
@@ -46,22 +51,27 @@ public class Mapa {
 	/**
 	 * Constructor con parametros.
 	 * 
-	 * @param ancho
-	 * @param alto
-	 * @param bloque
-	 * @param grid
+	 * @param ancho      : int
+	 * @param alto       : int
+	 * @param bloque     : int
+	 * @param percepcion : StateObservation
 	 */
 	public Mapa(int ancho, int alto, int bloque, StateObservation percepcion) {
 		this.ancho = ancho;
 		this.alto = alto;
 		this.bloque = bloque;
 
+		this.percepcion = percepcion;
+
 		this.tablero = new ArrayList<ArrayList<Casilla>>();
 
-		this.avatar = new Casilla();
-		this.enemy = new Casilla();
-		
-		actualiza(percepcion, Visualizaciones.NADA);
+		this.avatarCurrentPosition = new Casilla();
+		this.enemyCurrentObservation = new Observation();
+
+		this.numCalmados = 0;
+		this.numMolestos = 0;
+
+		actualiza(percepcion, Visualizaciones.APAGADA);
 	}
 
 	// =============================================================================
@@ -71,7 +81,7 @@ public class Mapa {
 	/**
 	 * Devuelve el ancho del mapa.
 	 * 
-	 * @return Ancho del mapa.
+	 * @return int : ancho del mapa.
 	 */
 	public int getAncho() {
 		return this.ancho;
@@ -80,35 +90,105 @@ public class Mapa {
 	/**
 	 * Devuelve el alto del mapa.
 	 * 
-	 * @return Alto del mapa.
+	 * @return int : alto del mapa.
 	 */
 	public int getAlto() {
 		return this.alto;
 	}
 
 	/**
-	 * Devuelve la casilla donde se encuentra el avatar dentro del tablero.
+	 * Devuelve la posicion del avatar en coordenadas x y del tablero.
 	 * 
-	 * @return Casilla superman.
+	 * @return Casilla : casilla donde se encuentra el avatar en el tick actual.
 	 */
-	public Casilla getAvatar() {
-		return this.avatar;
+	public Casilla getCurrentAvatarPosition() {
+		return this.avatarCurrentPosition;
 	}
 
-	public Casilla getLastAvatar() {
+	/**
+	 * Devuelve la posicion del avatar en coordenadas x y del tablero.
+	 * 
+	 * @return Casilla : casilla donde se encuentra el avatar en el tick anterior.
+	 */
+	public Casilla getLastAvatarLastPosition() {
 		return this.avatarLastPosition;
 	}
 
-	public int getColumnaPortal() {
-		return this.columnaPortal;
+	/**
+	 * Devuelve la orientacion del avatar. Si el juego ha terminado, no podemos
+	 * garantiazar que la orientacion refleje la orientacion real del avatar (el
+	 * avatar será destruido). Si el juego ha terminado, se devolverá Types,NIL.
+	 * 
+	 * @return Vector2d : orientacion del avatar, o Types.NIL si el juego ha
+	 *         terminado.
+	 */
+	public Vector2d getOrientacionAvatar() {
+		return this.percepcion.getAvatarOrientation();
+	}
+
+	/**
+	 * Devuelve la posicion del enemigo en coordenadas x y del tablero.
+	 * 
+	 * @return Casilla : casilla donde se encuentra el enemigo en el tick actual.
+	 */
+	public Casilla getCurrentEnemyPosition() {
+		return new Casilla((int) this.enemyCurrentObservation.position.x / bloque,
+				(int) this.enemyCurrentObservation.position.y / bloque, ENEMIGO);
+	}
+
+	/**
+	 * Devuelve la posicion del enemigo en coordenadas x y del tablero.
+	 * 
+	 * @return Casilla : casilla donde se encuentra el enemigo en el tick anterior.
+	 */
+	public Casilla getEnemyLastPosition() {
+		return new Casilla((int) this.enemyLastObservation.position.x / bloque,
+				(int) this.enemyLastObservation.position.y / bloque, ENEMIGO);
+	}
+
+	/**
+	 * Devuelve la distancia que hay entre el avatar y el enemigo en dicho instante.
+	 * 
+	 * @return double : distancia entre el avatar y el enemigo en el tick actual
+	 */
+	public double getCurrentDistance() {
+		return this.enemyCurrentObservation.sqDist / bloque;
+	}
+
+	/**
+	 * Devuelve la distancia que hay entre el avatar y el enemigo en el instante
+	 * anterior.
+	 * 
+	 * @return double : distancia entre el avatar y el enemigo en el tick anterior.
+	 */
+	public double getLastDistance() {
+		return this.enemyLastObservation.sqDist / bloque;
+	}
+
+	/**
+	 * Devuelve el numero de NPCs con el estado calmado.
+	 * 
+	 * @return int : numero de NPCs calmados.
+	 */
+	public int getCalmados() {
+		return this.numCalmados;
+	}
+
+	/**
+	 * Devuelve el numero de NPCs con estado molesto.
+	 * 
+	 * @return int : numero de NPCs con estado molesto.
+	 */
+	public int getMolestos() {
+		return this.numMolestos;
 	}
 
 	/**
 	 * Devuelve el nodo que se encuentra en las coordenadas pasadas por parametro
 	 * 
-	 * @param x Coordenada X del nodo
-	 * @param y Coordenada Y del nodo
-	 * @return Casilla que se encuentra en la posicion X e Y del mapa
+	 * @param x : Coordenada X del nodo
+	 * @param y : Coordenada Y del nodo
+	 * @return Casilla : casilla que se encuentra en la posicion X e Y del mapa
 	 */
 	public Casilla getNodo(int x, int y) {
 		return this.tablero.get(x).get(y);
@@ -118,7 +198,7 @@ public class Mapa {
 	 * Cambia el estado de la casilla que se encuentra en la misma posicion que la
 	 * casilla pasada por parametro.
 	 * 
-	 * @param n Casilla a la que se cambiara el estado.
+	 * @param n : Casilla a la que se cambiara el estado.
 	 */
 	public void setNodo(Casilla n) {
 		this.tablero.get(n.getX()).get(n.getY()).setEstado(n.getEstado());
@@ -133,56 +213,26 @@ public class Mapa {
 	 * reasignaciones.
 	 * 
 	 * @param percepcion
-	 * @param opcion     Opcion para mostrar por consola el mapa o solo cargar las
+	 * @param opcion     : Opcion para mostrar por consola el mapa o solo cargar las
 	 *                   percepciones necesarias para el funcionamiento
 	 */
 	public void actualiza(StateObservation percepcion, Visualizaciones opcion) {
+		this.percepcion = percepcion;
 		this.tablero.clear();
 		generaCasillas();
+		actualizaImmovable();
+		actualizaAvatar();
+		actualizaNPC();
+		asignaVecinos();
 
-		switch (opcion) {
-		case NADA:
-			setImmovablePositions(percepcion.getImmovablePositions());
-			setPortalsPositions(percepcion.getPortalsPositions());
-			setAvatarPosition(percepcion.getAvatarPosition());
-			asignaVecinos();
-			break;
-		case BASICO:
-			setImmovablePositions(percepcion.getImmovablePositions());
-			setPortalsPositions(percepcion.getPortalsPositions());
-			setAvatarPosition(percepcion.getAvatarPosition());
-			asignaVecinos();
+		if (opcion == Visualizaciones.ENCENDIDA) {
 			visualiza();
-			break;
-		case MAPA:
-			setImmovablePositions(percepcion.getImmovablePositions());
-			setPortalsPositions(percepcion.getPortalsPositions());
-			asignaVecinos();
-			visualiza();
-			break;
-		case CAMELLOS:
-			setMovablePositions(percepcion.getMovablePositions());
-			setNPC(percepcion.getNPCPositions());
-			asignaVecinos();
-			visualiza();
-			break;
-		case TODO:
-			setImmovablePositions(percepcion.getImmovablePositions());
-			setPortalsPositions(percepcion.getPortalsPositions());
-			setMovablePositions(percepcion.getMovablePositions());
-			setNPC(percepcion.getNPCPositions());
-			setAvatarPosition(percepcion.getAvatarPosition());
-			asignaVecinos();
-			visualiza();
-			break;
 		}
 	}
 
 	/**
 	 * Inicializa todas las casillas que forman el mapa, por defecto inicializamos
-	 * todas como cielo.
-	 * 
-	 * @param grid Tabla con todos los obetos observados en el mapa.
+	 * todas como VACIO.
 	 */
 	public void generaCasillas() {
 		for (int x = 0; x < this.ancho; x++) {
@@ -196,91 +246,42 @@ public class Mapa {
 	/**
 	 * Asigna a las casillas, donde se encuentran los objetos inmovibles, su estado
 	 * correspondiente.
-	 * 
-	 * @param percepcion Observacion del estado actual.
 	 */
-	private void setImmovablePositions(ArrayList<Observation>[] inmovable) {
+	private void actualizaImmovable() {
+		ArrayList<Observation>[] inmovable = percepcion.getImmovablePositions();
 		if (inmovable != null) {
 			for (int i = 0; i < inmovable.length; i++) {
 				for (int j = 0; j < inmovable[i].size(); j++) {
-					int x = (int) Math.ceil(inmovable[i].get(j).position.x / this.bloque);
-					int y = (int) Math.ceil(inmovable[i].get(j).position.y / this.bloque);
-					
-					this.tablero.get(x).get(y).setEstado(MURO);
-					
-//					this.tablero.get(x).get(y).setEstado(Integer.toString(inmovable[i].get(j).itype));
-//					this.tablero.get(x).get(y).setEstado(Integer.toString(inmovable[i].get(j).category));
+					if (inmovable[i].get(j).category == muro_cate && inmovable[i].get(j).itype == muro_tipo) {
+						int x = (int) inmovable[i].get(j).position.x / this.bloque;
+						int y = (int) inmovable[i].get(j).position.y / this.bloque;
 
+						this.tablero.get(x).get(y).setEstado(MURO);
+					}
 				}
 			}
 		}
 	}
-
-//	private void setPortalsPositions(ArrayList<Observation>[] portals) {
-//		if (portals != null) {
-//			for (int i = 0; i < portals.length; i++) {
-//				for (int j = 0; j < portals[i].size(); j++) {
-//					int x = (int) portals[i].get(j).position.x / this.bloque;
-//					int y = (int) portals[i].get(j).position.y / this.bloque;
-//
-////					switch (portals[i].get(j).itype) {
-////					case Constantes.meta_tipo:
-////						this.tablero.get(x).get(y).setEstado(Constantes.META);
-////						break;
-////					default:
-////						this.tablero.get(x).get(y).setEstado(Constantes.VACIO);
-////						break;
-////					}
-//
-//					this.tablero.get(x).get(y).setEstado("!");
-//					this.columnaPortal = x;
-//				}
-//			}
-//		}
-//	}
 
 	/**
-	 * Asigna a las casillas, donde se encuentran los objetos moviles, su estado
-	 * correspondiente.
-	 * 
-	 * @param percepcion Observacion del estado actual.
+	 * Actualiza la ultima posición del avatar, actualiza la posición actual del
+	 * avatar y reasigna el estado de la casilla afectada.
 	 */
-	private void setMovablePositions(ArrayList<Observation>[] movable) {
-		if (movable != null) {
+	private void actualizaAvatar() {
+		this.avatarLastPosition = this.avatarCurrentPosition;
+		int x = (int) percepcion.getAvatarPosition().x / this.bloque;
+		int y = (int) percepcion.getAvatarPosition().y / this.bloque;
 
-			for (int i = 0; i < movable.length; i++) {
-				for (int j = 0; j < movable[i].size(); j++) {
-//					int x = (int) Math.ceil(movable[i].get(j).position.x / this.bloque);
-//					int y = (int) Math.ceil(movable[i].get(j).position.y / this.bloque);
-
-					int x = (int) movable[i].get(j).position.x / this.bloque;
-					int y = (int) movable[i].get(j).position.y / this.bloque;
-
-//					switch (movable[i].get(j).itype) {
-//					case Constantes.cdr_tipo:
-//						this.tablero.get(x).get(y).setEstado(Constantes.CDR);
-//						break;
-//					case Constantes.cdm_tipo:
-//						this.tablero.get(x).get(y).setEstado(Constantes.CDM);
-//						break;
-//					case Constantes.cdl_tipo:
-//						this.tablero.get(x).get(y).setEstado(Constantes.CDL);
-//						break;
-//					default:
-////						this.tablero.get(x).get(y).setEstado(Constantes.VACIO);
-//						this.tablero.get(x).get(y).setEstado(Integer.toString(movable[i].get(j).category));
-//						break;
-//					}
-
-//					this.tablero.get(x).get(y).setEstado(Integer.toString(movable[i].get(j).itype));
-					this.tablero.get(x).get(y).setEstado(Integer.toString(movable[i].get(j).category));
-				}
-			}
-		}
-
+		this.tablero.get(x).get(y).setEstado(AVATAR);
+		this.avatarCurrentPosition = this.tablero.get(x).get(y);
 	}
 
-	private void setNPC(ArrayList<Observation>[] NPC) {
+	/**
+	 * Asigna a las casillas, donde se encuentra los NPCs detectados como
+	 * observaciones, con su estado correspondiente
+	 */
+	private void actualizaNPC() {
+		ArrayList<Observation>[] NPC = percepcion.getNPCPositions();
 		if (NPC != null) {
 
 			for (int i = 0; i < NPC.length; i++) {
@@ -290,84 +291,32 @@ public class Mapa {
 					int y = (int) NPC[i].get(j).position.y / this.bloque;
 
 					switch (NPC[i].get(j).itype) {
-					case Constantes.relax_tipo:
-						this.tablero.get(x).get(y).setEstado(Constantes.RELAJADO);
+					case Constantes.calmado_tipo:
+						NPC[i].get(j).update(calmado_tipo, NPC[i].get(j).obsID, NPC[i].get(j).position,
+								percepcion.getAvatarPosition(), calmado_cate);
+						this.tablero.get(x).get(y).setEstado(Constantes.CALMADO);
 						break;
-					case Constantes.angry_tipo:
-						this.tablero.get(x).get(y).setEstado(Constantes.ENFADADO);
+					case Constantes.molesto_tipo:
+						NPC[i].get(j).update(molesto_tipo, NPC[i].get(j).obsID, NPC[i].get(j).position,
+								percepcion.getAvatarPosition(), molesto_cate);
+						this.tablero.get(x).get(y).setEstado(Constantes.MOLESTO);
 						break;
 					case Constantes.enemy_tipo:
+						NPC[i].get(j).update(enemy_tipo, NPC[i].get(j).obsID, NPC[i].get(j).position,
+								percepcion.getAvatarPosition(), enemy_cate);
+						this.enemyLastObservation = this.enemyCurrentObservation;
+						this.enemyCurrentObservation = NPC[i].get(j);
 						this.tablero.get(x).get(y).setEstado(Constantes.ENEMIGO);
 						break;
-					default:
-						this.tablero.get(x).get(y).setEstado(Constantes.VACIO);
-						break;
 					}
-									
-//					this.tablero.get(x).get(y).setEstado(Integer.toString(NPC[i].get(j).itype));
-//					this.tablero.get(x).get(y).setEstado(Integer.toString(NPC[i].get(j).category));
-				}
-			}
-		}
-	}
-	
-	private void setResource(ArrayList<Observation>[] resource) {
-		if (resource != null) {
-
-			for (int i = 0; i < resource.length; i++) {
-				for (int j = 0; j < resource[i].size(); j++) {
-
-					int x = (int) resource[i].get(j).position.x / this.bloque;
-					int y = (int) resource[i].get(j).position.y / this.bloque;
-
-//					switch (resource[i].get(j).itype) {
-//					case Constantes.relax_tipo:
-//						this.tablero.get(x).get(y).setEstado(Constantes.RELAJADO);
-//						break;
-//					case Constantes.angry_tipo:
-//						this.tablero.get(x).get(y).setEstado(Constantes.ENFADADO);
-//						break;
-//					case Constantes.enemy_tipo:
-//						this.tablero.get(x).get(y).setEstado(Constantes.ENEMIGO);
-//						break;
-//					default:
-//						this.tablero.get(x).get(y).setEstado(Constantes.VACIO);
-//						break;
-//					}
-									
-					this.tablero.get(x).get(y).setEstado(Integer.toString(resource[i].get(j).itype));
-//					this.tablero.get(x).get(y).setEstado(Integer.toString(resource[i].get(j).category));
 				}
 			}
 		}
 	}
 
-	private void initAvatarPosition(Vector2d pos) {
-		int x = (int) Math.ceil(pos.x / this.bloque);
-		int y = (int) Math.ceil(pos.y / this.bloque);
-
-		this.tablero.get(x).get(y).setEstado(AVATAR);
-		this.avatar = this.tablero.get(x).get(y);
-	}
-
 	/**
-	 * Asigna la posicion del avatar dentro del tablero y guarda la casilla en la
-	 * variable superman.
-	 * 
-	 * @param percepcion Observaci�n del estado actual.
-	 */
-	private void setAvatarPosition(Vector2d pos) {
-		this.avatarLastPosition = this.avatar;
-		int x = (int) Math.ceil(pos.x / this.bloque);
-		int y = (int) Math.ceil(pos.y / this.bloque);
-
-		this.tablero.get(x).get(y).setEstado(AVATAR);
-		this.avatar = this.tablero.get(x).get(y);
-	}
-
-	/**
-	 * Asigna los vecinosa cada nodo que forma el mapa, mediante la vecindad tipo 4,
-	 * esto no hace posible realizar movimientos en diagonal.
+	 * Asigna los vecinos a cada nodo que forma el mapa, mediante la vecindad tipo
+	 * 4, esto no hace posible realizar movimientos en diagonal.
 	 */
 	public void asignaVecinos() {
 		for (int x = 0; x < this.ancho; x++) {
@@ -413,5 +362,4 @@ public class Mapa {
 		System.out.println();
 
 	}
-
 }

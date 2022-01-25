@@ -34,15 +34,15 @@ public final class Constantes {
 	// MOVIBLES
 
 	// NPCs
-	public static final String RELAJADO= "R";
-	public static final int relax_cate = 3;
-	public static final int relax_tipo = 6;
-	
-	public static final String ENFADADO= "E";
-	public static final int angry_cate = 3;
-	public static final int angry_tipo = 4;
-	
-	public static final String ENEMIGO= "#";
+	public static final String CALMADO = "C";
+	public static final int calmado_cate = 3;
+	public static final int calmado_tipo = 6;
+
+	public static final String MOLESTO = "M";
+	public static final int molesto_cate = 3;
+	public static final int molesto_tipo = 4;
+
+	public static final String ENEMIGO = "#";
 	public static final int enemy_cate = 3;
 	public static final int enemy_tipo = 7;
 
@@ -51,7 +51,7 @@ public final class Constantes {
 	// =============================================================================
 
 	public enum Visualizaciones {
-		NADA, MAPA, BASICO, CAMELLOS, TODO
+		APAGADA, ENCENDIDA
 	}
 
 	public enum SENTIDO {
@@ -63,8 +63,8 @@ public final class Constantes {
 	}
 
 	public enum STATES {
-		ESTADO_1, ESTADO_2, ESTADO_3, ESTADO_4, ESTADO_5, ESTADO_6, ESTADO_7, 
-		ESTADO_8, ESTADO_9, ESTADO_10, ESTADO_11, ESTADO_12, ESTADO_13
+		ESTADO_1, ESTADO_2, ESTADO_3, ESTADO_4, ESTADO_5, ESTADO_6, ESTADO_7, ESTADO_8, ESTADO_9, ESTADO_10, ESTADO_11,
+		ESTADO_12, ESTADO_13
 	}
 
 	public enum QUESTIONS {

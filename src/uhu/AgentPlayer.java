@@ -7,6 +7,8 @@ import ontology.Types.ACTIONS;
 import tools.ElapsedCpuTimer;
 
 /**
+ * Clase Agente encargada de ejecutar la Tabla Q generada en el entrenamiento.
+ * 
  * @author Carlos Garcia Silva
  * @author Daniel Perez Rodriguez
  *
@@ -40,7 +42,7 @@ public class AgentPlayer extends AbstractPlayer {
 	 * 
 	 * @param percepcion   Observacion del estado actual.
 	 * @param elapsedTimer Temporizador cuando vence la accion devuelta.
-	 * @return Una accion para el estado actual.
+	 * @return ACTIONS : Una accion para el estado actual.
 	 */
 	public ACTIONS act(StateObservation percepcion, ElapsedCpuTimer elapsedTimer) {
 
@@ -48,7 +50,7 @@ public class AgentPlayer extends AbstractPlayer {
 		ACTIONS accion = c.pensar(percepcion);
 
 		if (o < 10) {
-			return ACTIONS.ACTION_USE;
+			return ACTIONS.ACTION_NIL;
 		} else {
 			o++;
 			return accion;
