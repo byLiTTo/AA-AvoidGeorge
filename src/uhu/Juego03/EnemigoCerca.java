@@ -3,13 +3,11 @@ package uhu.Juego03;
 import uhu.Cerebro;
 import uhu.Constantes.STATES;
 import uhu.arbol.NodoLogico;
-import uhu.grid.Casilla;
 
-public class EnemigoDerecha extends NodoLogico {
+public class EnemigoCerca extends NodoLogico {
 	@Override
 	public STATES decidir(Cerebro c) {
-		double grados = c.calculaRotacion(c.getMapa().getCurrentEnemyPosition());
-		if (grados >= 135 && grados <= 180 || grados <= -135 && grados >= -180) {
+		if (c.getMapa().getDistanciaSeguridad() >= c.getMapa().getCurrentDistance()) {
 			this.setValor(true);
 		} else {
 			this.setValor(false);

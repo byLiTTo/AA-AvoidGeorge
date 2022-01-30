@@ -38,11 +38,16 @@ public class Mapa {
 	private Observation enemyCurrentObservation;
 	private Observation enemyLastObservation;
 
+	private Observation nearCurrentObservation;
+	private Observation nearLastObservation;
+
 //	private double currentDistance;
 //	private double lastDistance;
 
 	private int numCalmados;
 	private int numMolestos;
+
+	private double distanciaSeguridad;
 
 	// =============================================================================
 	// CONSTRUCTORES
@@ -65,11 +70,15 @@ public class Mapa {
 
 		this.tablero = new ArrayList<ArrayList<Casilla>>();
 
-		this.avatarCurrentPosition = new Casilla();
+		this.avatarCurrentPosition = new Casilla((int) percepcion.getAvatarPosition().x / bloque,
+				(int) percepcion.getAvatarPosition().y / bloque, AVATAR);
 		this.enemyCurrentObservation = new Observation();
+		this.nearCurrentObservation = new Observation();
 
 		this.numCalmados = 0;
 		this.numMolestos = 0;
+
+		this.distanciaSeguridad = this.bloque * 2.5;
 
 		actualiza(percepcion, Visualizaciones.APAGADA);
 	}
@@ -147,6 +156,26 @@ public class Mapa {
 	}
 
 	/**
+	 * Devuelve la posicion del enemigo en coordenadas x y del tablero.
+	 * 
+	 * @return Casilla : casilla donde se encuentra el enemigo en el tick actual.
+	 */
+	public Casilla getCurrentNearPosition() {
+		return new Casilla((int) this.nearCurrentObservation.position.x / bloque,
+				(int) this.nearCurrentObservation.position.y / bloque, CALMADO);
+	}
+
+	/**
+	 * Devuelve la posicion del enemigo en coordenadas x y del tablero.
+	 * 
+	 * @return Casilla : casilla donde se encuentra el enemigo en el tick anterior.
+	 */
+	public Casilla getNearLastPosition() {
+		return new Casilla((int) this.nearLastObservation.position.x / bloque,
+				(int) this.nearLastObservation.position.y / bloque, CALMADO);
+	}
+
+	/**
 	 * Devuelve la distancia que hay entre el avatar y el enemigo en dicho instante.
 	 * 
 	 * @return double : distancia entre el avatar y el enemigo en el tick actual
@@ -181,6 +210,17 @@ public class Mapa {
 	 */
 	public int getMolestos() {
 		return this.numMolestos;
+	}
+
+	/**
+	 * Devuelve la distancia de seguridad que posee el avatar para detectar al
+	 * enemigo como cerca.
+	 * 
+	 * @return double : distancia a partir de la cual el avatar considera que tiene
+	 *         cerca al enemigo.
+	 */
+	public double getDistanciaSeguridad() {
+		return this.distanciaSeguridad;
 	}
 
 	/**
@@ -282,6 +322,7 @@ public class Mapa {
 	 */
 	private void actualizaNPC() {
 		ArrayList<Observation>[] NPC = percepcion.getNPCPositions();
+		double distMin = Double.MAX_VALUE;
 		if (NPC != null) {
 
 			for (int i = 0; i < NPC.length; i++) {
@@ -294,6 +335,11 @@ public class Mapa {
 					case Constantes.calmado_tipo:
 						NPC[i].get(j).update(calmado_tipo, NPC[i].get(j).obsID, NPC[i].get(j).position,
 								percepcion.getAvatarPosition(), calmado_cate);
+						if (NPC[i].get(j).sqDist < distMin) {
+							this.enemyLastObservation = this.nearCurrentObservation;
+							this.nearCurrentObservation = NPC[i].get(j);
+							distMin = NPC[i].get(j).sqDist;
+						}
 						this.tablero.get(x).get(y).setEstado(Constantes.CALMADO);
 						break;
 					case Constantes.molesto_tipo:

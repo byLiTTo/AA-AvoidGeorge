@@ -8,9 +8,8 @@ import uhu.grid.Casilla;
 public class EnemigoArriba extends NodoLogico {
 	@Override
 	public STATES decidir(Cerebro c) {
-		Casilla avatar = c.getMapa().getCurrentAvatarPosition();
-		Casilla enemigo = c.getMapa().getCurrentEnemyPosition();
-		if (avatar.getX() == enemigo.getX() && avatar.getY() == enemigo.getY() + 1) {
+		double grados = c.calculaRotacion(c.getMapa().getCurrentEnemyPosition());
+		if (grados > 45 && grados <= 135) {
 			this.setValor(true);
 		} else {
 			this.setValor(false);
