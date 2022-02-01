@@ -7,7 +7,7 @@ import uhu.arbol.NodoLogico;
 public class EnemigoCerca extends NodoLogico {
 	@Override
 	public STATES decidir(Cerebro c) {
-		if (c.getMapa().getDistanciaSeguridad() >= c.getMapa().getCurrentDistance()) {
+		if (c.getMapa().getDistanciaSeguridad() >= c.getMapa().geyEnemyCurrentDistanceFrom(c.getMapa().getCurrentAvatarPosition())) {
 			this.setValor(true);
 		} else {
 			this.setValor(false);

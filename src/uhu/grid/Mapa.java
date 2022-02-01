@@ -32,14 +32,17 @@ public class Mapa {
 
 	private ArrayList<ArrayList<Casilla>> tablero;
 
-	private Casilla avatarCurrentPosition;
-	private Casilla avatarLastPosition;
+	private Vector2d avatarCurrentPosition;
+	private Vector2d avatarLastPosition;
 
 	private Observation enemyCurrentObservation;
 	private Observation enemyLastObservation;
 
-	private Observation nearCurrentObservation;
-	private Observation nearLastObservation;
+	private Observation calmadoCurrentObservation;
+	private Observation calmadoLastObservation;
+
+	private Observation molestoCurrentObservation;
+	private Observation molestoLastObservation;
 
 //	private double currentDistance;
 //	private double lastDistance;
@@ -47,7 +50,8 @@ public class Mapa {
 	private int numCalmados;
 	private int numMolestos;
 
-	private double distanciaSeguridad;
+	private double dPeligro;
+	private double dMolesto;
 
 	// =============================================================================
 	// CONSTRUCTORES
@@ -70,15 +74,19 @@ public class Mapa {
 
 		this.tablero = new ArrayList<ArrayList<Casilla>>();
 
-		this.avatarCurrentPosition = new Casilla((int) percepcion.getAvatarPosition().x / bloque,
-				(int) percepcion.getAvatarPosition().y / bloque, AVATAR);
+		this.avatarCurrentPosition = percepcion.getAvatarPosition();
+
 		this.enemyCurrentObservation = new Observation();
-		this.nearCurrentObservation = new Observation();
+
+		this.calmadoCurrentObservation = new Observation();
+
+		this.molestoCurrentObservation = new Observation();
 
 		this.numCalmados = 0;
 		this.numMolestos = 0;
 
-		this.distanciaSeguridad = this.bloque * 2.5;
+		this.dPeligro = this.bloque * 2.5;
+		this.dMolesto = this.bloque * 1.5;
 
 		actualiza(percepcion, Visualizaciones.APAGADA);
 	}
@@ -110,8 +118,8 @@ public class Mapa {
 	 * 
 	 * @return Casilla : casilla donde se encuentra el avatar en el tick actual.
 	 */
-	public Casilla getCurrentAvatarPosition() {
-		return this.avatarCurrentPosition;
+	public Vector2d getCurrentAvatarPosition() {
+		return this.percepcion.getAvatarPosition();
 	}
 
 	/**
@@ -119,7 +127,7 @@ public class Mapa {
 	 * 
 	 * @return Casilla : casilla donde se encuentra el avatar en el tick anterior.
 	 */
-	public Casilla getLastAvatarLastPosition() {
+	public Vector2d getLastAvatarLastPosition() {
 		return this.avatarLastPosition;
 	}
 
@@ -140,9 +148,8 @@ public class Mapa {
 	 * 
 	 * @return Casilla : casilla donde se encuentra el enemigo en el tick actual.
 	 */
-	public Casilla getCurrentEnemyPosition() {
-		return new Casilla((int) this.enemyCurrentObservation.position.x / bloque,
-				(int) this.enemyCurrentObservation.position.y / bloque, ENEMIGO);
+	public Vector2d getEnemyCurrentPosition() {
+		return this.enemyCurrentObservation.position;
 	}
 
 	/**
@@ -150,29 +157,48 @@ public class Mapa {
 	 * 
 	 * @return Casilla : casilla donde se encuentra el enemigo en el tick anterior.
 	 */
-	public Casilla getEnemyLastPosition() {
-		return new Casilla((int) this.enemyLastObservation.position.x / bloque,
-				(int) this.enemyLastObservation.position.y / bloque, ENEMIGO);
+	public Vector2d getEnemyLastPosition() {
+		return this.enemyLastObservation.position;
 	}
 
 	/**
-	 * Devuelve la posicion del enemigo en coordenadas x y del tablero.
+	 * Devuelve la posicion del NPC calmado mas cercano al avatar en coordenadas x y
+	 * del tablero.
 	 * 
-	 * @return Casilla : casilla donde se encuentra el enemigo en el tick actual.
+	 * @return Casilla : casilla donde se encuentra el NPC en el tick actual.
 	 */
-	public Casilla getCurrentNearPosition() {
-		return new Casilla((int) this.nearCurrentObservation.position.x / bloque,
-				(int) this.nearCurrentObservation.position.y / bloque, CALMADO);
+	public Vector2d getCalmadoCurrentPosition() {
+		return this.calmadoCurrentObservation.position;
 	}
 
 	/**
-	 * Devuelve la posicion del enemigo en coordenadas x y del tablero.
+	 * Devuelve la posicion del NPC calmado mas cercano al avatar en coordenadas x y
+	 * del tablero.
 	 * 
-	 * @return Casilla : casilla donde se encuentra el enemigo en el tick anterior.
+	 * @return Casilla : casilla donde se encuentra el NPC en el tick anterior.
 	 */
-	public Casilla getNearLastPosition() {
-		return new Casilla((int) this.nearLastObservation.position.x / bloque,
-				(int) this.nearLastObservation.position.y / bloque, CALMADO);
+	public Vector2d getCalmadoLastPosition() {
+		return this.calmadoLastObservation.position;
+	}
+
+	/**
+	 * Devuelve la posicion del NPC molesto mas lejano al enemigo en coordenadas x y
+	 * del tablero.
+	 * 
+	 * @return Casilla : casilla donde se encuentra el NPC en el tick actual.
+	 */
+	public Vector2d getMolestoCurrentPosition() {
+		return this.molestoCurrentObservation.position;
+	}
+
+	/**
+	 * Devuelve la posicion del NPC calmado mas lejano al enemigo en coordenadas x y
+	 * del tablero.
+	 * 
+	 * @return Casilla : casilla donde se encuentra el NPC en el tick anterior.
+	 */
+	public Vector2d getMolestoLastPosition() {
+		return this.molestoLastObservation.position;
 	}
 
 	/**
@@ -180,8 +206,8 @@ public class Mapa {
 	 * 
 	 * @return double : distancia entre el avatar y el enemigo en el tick actual
 	 */
-	public double getCurrentDistance() {
-		return this.enemyCurrentObservation.sqDist / bloque;
+	public double geyEnemyCurrentDistanceFrom(Vector2d position) {
+		return this.enemyCurrentObservation.position.sqDist(position);
 	}
 
 	/**
@@ -190,8 +216,27 @@ public class Mapa {
 	 * 
 	 * @return double : distancia entre el avatar y el enemigo en el tick anterior.
 	 */
-	public double getLastDistance() {
-		return this.enemyLastObservation.sqDist / bloque;
+	public double getEnemyLastDistanceFrom(Vector2d position) {
+		return this.enemyLastObservation.position.sqDist(position);
+	}
+
+	/**
+	 * Devuelve la distancia que hay entre el avatar y el enemigo en dicho instante.
+	 * 
+	 * @return double : distancia entre el avatar y el enemigo en el tick actual
+	 */
+	public double getMolestoCurrentDistanceFrom(Vector2d position) {
+		return this.molestoCurrentObservation.position.sqDist(position);
+	}
+
+	/**
+	 * Devuelve la distancia que hay entre el avatar y el enemigo en el instante
+	 * anterior.
+	 * 
+	 * @return double : distancia entre el avatar y el enemigo en el tick anterior.
+	 */
+	public double getMolestoLastDistanceFrom(Vector2d position) {
+		return this.molestoLastObservation.position.sqDist(position);
 	}
 
 	/**
@@ -220,7 +265,18 @@ public class Mapa {
 	 *         cerca al enemigo.
 	 */
 	public double getDistanciaSeguridad() {
-		return this.distanciaSeguridad;
+		return this.dPeligro;
+	}
+
+	/**
+	 * Devuelve la distancia de seguridad que posee el avatar para detectar al
+	 * enemigo como cerca.
+	 * 
+	 * @return double : distancia a partir de la cual el avatar considera que tiene
+	 *         cerca al enemigo.
+	 */
+	public double getDistanciaLanzamiento() {
+		return this.dMolesto;
 	}
 
 	/**
@@ -313,7 +369,7 @@ public class Mapa {
 		int y = (int) percepcion.getAvatarPosition().y / this.bloque;
 
 		this.tablero.get(x).get(y).setEstado(AVATAR);
-		this.avatarCurrentPosition = this.tablero.get(x).get(y);
+		this.avatarCurrentPosition = percepcion.getAvatarPosition();
 	}
 
 	/**
@@ -322,7 +378,8 @@ public class Mapa {
 	 */
 	private void actualizaNPC() {
 		ArrayList<Observation>[] NPC = percepcion.getNPCPositions();
-		double distMin = Double.MAX_VALUE;
+		double distCalmado = Double.MAX_VALUE;
+		double distMolesto = Double.MIN_VALUE;
 		if (NPC != null) {
 
 			for (int i = 0; i < NPC.length; i++) {
@@ -333,23 +390,22 @@ public class Mapa {
 
 					switch (NPC[i].get(j).itype) {
 					case Constantes.calmado_tipo:
-						NPC[i].get(j).update(calmado_tipo, NPC[i].get(j).obsID, NPC[i].get(j).position,
-								percepcion.getAvatarPosition(), calmado_cate);
-						if (NPC[i].get(j).sqDist < distMin) {
-							this.enemyLastObservation = this.nearCurrentObservation;
-							this.nearCurrentObservation = NPC[i].get(j);
-							distMin = NPC[i].get(j).sqDist;
+						if (NPC[i].get(j).position.sqDist(percepcion.getAvatarPosition()) < distCalmado) {
+							this.calmadoLastObservation = this.calmadoCurrentObservation;
+							this.calmadoCurrentObservation = NPC[i].get(j);
+							distCalmado = NPC[i].get(j).position.sqDist(percepcion.getAvatarPosition());
 						}
 						this.tablero.get(x).get(y).setEstado(Constantes.CALMADO);
 						break;
 					case Constantes.molesto_tipo:
-						NPC[i].get(j).update(molesto_tipo, NPC[i].get(j).obsID, NPC[i].get(j).position,
-								percepcion.getAvatarPosition(), molesto_cate);
+						if (NPC[i].get(j).position.sqDist(percepcion.getAvatarPosition()) > distMolesto) {
+							this.molestoLastObservation = this.molestoCurrentObservation;
+							this.molestoCurrentObservation = NPC[i].get(j);
+							distMolesto = NPC[i].get(j).position.sqDist(this.enemyCurrentObservation.position);
+						}
 						this.tablero.get(x).get(y).setEstado(Constantes.MOLESTO);
 						break;
 					case Constantes.enemy_tipo:
-						NPC[i].get(j).update(enemy_tipo, NPC[i].get(j).obsID, NPC[i].get(j).position,
-								percepcion.getAvatarPosition(), enemy_cate);
 						this.enemyLastObservation = this.enemyCurrentObservation;
 						this.enemyCurrentObservation = NPC[i].get(j);
 						this.tablero.get(x).get(y).setEstado(Constantes.ENEMIGO);

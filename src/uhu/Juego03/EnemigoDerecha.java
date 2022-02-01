@@ -8,7 +8,7 @@ import uhu.grid.Casilla;
 public class EnemigoDerecha extends NodoLogico {
 	@Override
 	public STATES decidir(Cerebro c) {
-		double grados = c.calculaRotacion(c.getMapa().getCurrentEnemyPosition());
+		double grados = c.calculaRotacion(c.getMapa().getEnemyCurrentPosition());
 		if (grados >= 135 && grados <= 180 || grados <= -135 && grados >= -180) {
 			this.setValor(true);
 		} else {

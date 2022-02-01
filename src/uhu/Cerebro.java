@@ -39,7 +39,6 @@ public class Cerebro {
 	private Nodo raiz;
 
 	private ACTIONS lastAction;
-	private ORIENTACION orientacion;
 
 	private double reward;
 	private double globalReward;
@@ -59,17 +58,28 @@ public class Cerebro {
 	private MuroDerecha muroDerecha;
 
 	// Arbol SIGUIENDO
-	private SanoArriba sanoArriba;
-	private SanoAbajo sanoAbajo;
-	private SanoIzquierda sanoIzquierda;
-	private SanoDerecha sanoDerecha;
+	private CalmadoArriba sanoArriba;
+	private CalmadoAbajo sanoAbajo;
+	private CalmadoIzquierda sanoIzquierda;
+	private CalmadoDerecha sanoDerecha;
 
 	// Estados
 	private Estado huye_arriba;
 	private Estado huye_abajo;
 	private Estado huye_izquierda;
 	private Estado huye_derecha;
-	private Estado quieto;
+
+	private Estado siguiendo_calmado_arriba;
+	private Estado siguiendo_calmado_abajo;
+	private Estado siguiendo_calmado_izquierda;
+	private Estado siguiendo_calmado_derecha;
+
+	private Estado siguiendo_molesto_arriba;
+	private Estado siguiendo_molesto_abajo;
+	private Estado siguiendo_molesto_izquierda;
+	private Estado siguiendo_molesto_derecha;
+
+	private Estado lanzando_cigarro;
 
 	// =============================================================================
 	// CONSTRUCTORES
@@ -88,21 +98,8 @@ public class Cerebro {
 
 		this.mapa = new Mapa(dim.width / bloque, dim.height / bloque, bloque, percepcion);
 
-//		if (this.mapa.getAvatar().getX() - this.mapa.getColumnaPortal() < 0) {
-//			this.lastAction = ACTIONS.ACTION_DOWN;
-//			this.currentState = STATES.ESTADO_2;
-//			this.lastState = STATES.ESTADO_2;
-//			this.orientacion = ORIENTACION.SUR;
-//
-//		} else {
-//			this.lastAction = ACTIONS.ACTION_UP;
-//			this.currentState = STATES.ESTADO_8;
-//			this.lastState = STATES.ESTADO_8;
-//			this.orientacion = ORIENTACION.NORTE;
-//		}
-
-		this.currentState = STATES.QUIETO;
-		this.lastState = STATES.QUIETO;
+		this.currentState = STATES.SIGUIENDO_CALMADO_ARRIBA;
+		this.lastState = STATES.SIGUIENDO_CALMADO_ARRIBA;
 
 		this.qlearning = new QLearning(getStates(), getActions(), new String("QTABLE.txt"));
 
@@ -132,15 +129,6 @@ public class Cerebro {
 	 */
 	public ACTIONS getLastAction() {
 		return this.lastAction;
-	}
-
-	/**
-	 * Devuelve la orientacion del agente
-	 * 
-	 * @return ORIENTATION : Devuelve una orientaci�n
-	 */
-	public ORIENTACION getOrientacion() {
-		return this.orientacion;
 	}
 
 	/**
@@ -210,21 +198,6 @@ public class Cerebro {
 		this.qlearning.update(lastState, lastAction, currentState, reward);
 		this.lastAction = this.qlearning.nextAction(currentState);
 
-		switch (this.lastAction) {
-		case ACTION_UP:
-			this.orientacion = ORIENTACION.NORTE;
-			break;
-		case ACTION_DOWN:
-			this.orientacion = ORIENTACION.SUR;
-			break;
-		case ACTION_RIGHT:
-			this.orientacion = ORIENTACION.ESTE;
-			break;
-		case ACTION_LEFT:
-			this.orientacion = ORIENTACION.OESTE;
-			break;
-		}
-
 		return lastAction;
 	}
 
@@ -241,9 +214,9 @@ public class Cerebro {
 	// AUXILIARES
 	// =============================================================================
 
-	public double calculaRotacion(Casilla c) {
-		Casilla avatar = this.mapa.getCurrentAvatarPosition();
-		double angulo = Math.atan2(avatar.getY() - c.getY(), avatar.getX() - c.getX());
+	public double calculaRotacion(Vector2d c) {
+		Vector2d avatar = this.mapa.getCurrentAvatarPosition();
+		double angulo = Math.atan2(avatar.y - c.y, avatar.x - c.x);
 		return Math.toDegrees(angulo);
 	}
 
@@ -359,7 +332,15 @@ public class Cerebro {
 	private ArrayList<STATES> getStates() {
 		// CAMINODERECHA, CAMINOABAJO, CAMINOARRIBA, CAMINOATRAS
 		return new ArrayList<STATES>(Arrays.asList(STATES.HUYENDO_ARRIBA, STATES.HUYENDO_ABAJO,
-				STATES.HUYENDO_IZQUIERDA, STATES.HUYENDO_DERECHA, STATES.QUIETO));
+				STATES.HUYENDO_IZQUIERDA, STATES.HUYENDO_DERECHA,
+
+				STATES.SIGUIENDO_CALMADO_ARRIBA, STATES.SIGUIENDO_CALMADO_ABAJO, STATES.SIGUIENDO_CALMADO_IZQUIERDA,
+				STATES.SIGUIENDO_CALMADO_DERECHA,
+
+				STATES.SIGUIENDO_MOLESTO_ARRIBA, STATES.SIGUIENDO_MOLESTO_ABAJO, STATES.SIGUIENDO_MOLESTO_IZQUIERDA,
+				STATES.SIGUIENDO_MOLESTO_DERECHA,
+
+				STATES.LANZANDO_CIGARRO));
 	}
 
 	/**
@@ -369,7 +350,7 @@ public class Cerebro {
 	 */
 	private ArrayList<ACTIONS> getActions() {
 		return new ArrayList<ACTIONS>(Arrays.asList(ACTIONS.ACTION_UP, ACTIONS.ACTION_DOWN, ACTIONS.ACTION_LEFT,
-				ACTIONS.ACTION_RIGHT, ACTIONS.ACTION_NIL));
+				ACTIONS.ACTION_RIGHT, ACTIONS.ACTION_USE));
 	}
 
 	/**
@@ -389,20 +370,13 @@ public class Cerebro {
 		this.muroAbajo = new MuroAbajo();
 		this.muroIzquierda = new MuroIzquierda();
 		this.muroDerecha = new MuroDerecha();
-
-		// Arbol SIGUIENDO
-		this.sanoArriba = new SanoArriba();
-		this.sanoAbajo = new SanoAbajo();
-		this.sanoIzquierda = new SanoIzquierda();
-		this.sanoDerecha = new SanoDerecha();
-
+		
 		// INICIALIZACION DE ESTADOS =====================================
 		// Estados
 		this.huye_arriba = new Estado(STATES.HUYENDO_ARRIBA);
 		this.huye_abajo = new Estado(STATES.HUYENDO_ABAJO);
 		this.huye_izquierda = new Estado(STATES.HUYENDO_IZQUIERDA);
 		this.huye_derecha = new Estado(STATES.HUYENDO_DERECHA);
-		this.quieto = new Estado(STATES.QUIETO);
 
 		// ESTRUCTURA DE ARBOL ===========================================
 		this.raiz = this.enemigoCerca;
@@ -429,7 +403,19 @@ public class Cerebro {
 		/* ....................Hay Enemigo Derecha? */
 		/* .....................SI */this.enemigoDerecha.setYes(huye_izquierda);
 		/* .....................NO */this.enemigoDerecha.setNo(quieto);
-		/* .NO */this.enemigoCerca.setNo(quieto);
+		/* .NO */this.enemigoCerca.setNo(this.sanoArriba);
+		/* ......Hay SANO ARRIBA? */
+		/* .......SI */this.sanoArriba.setYes(huye_arriba);
+		/* .......NO */this.sanoArriba.setNo(this.sanoAbajo);
+		/* ............Hay sano abajo? */
+		/* .............SI */this.sanoAbajo.setYes(huye_abajo);
+		/* .............NO */this.sanoAbajo.setNo(this.sanoIzquierda);
+		/* ..................Hay sano izquierda */
+		/* ...................SI */this.sanoIzquierda.setYes(huye_izquierda);
+		/* ...................NO */this.sanoIzquierda.setNo(this.sanoDerecha);
+		/* ........................Hay sano derecha */
+		/* .........................SI */this.sanoDerecha.setYes(huye_derecha);
+		/* .........................NO */this.sanoDerecha.setNo(quieto);
 	}
 
 	/**

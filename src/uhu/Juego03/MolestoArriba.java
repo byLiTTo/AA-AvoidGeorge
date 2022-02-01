@@ -5,11 +5,11 @@ import uhu.Constantes.STATES;
 import uhu.arbol.NodoLogico;
 import uhu.grid.Casilla;
 
-public class SanoDerecha extends NodoLogico {
+public class MolestoArriba extends NodoLogico {
 	@Override
 	public STATES decidir(Cerebro c) {
-		double grados = c.calculaRotacion(c.getMapa().getCurrentNearPosition());
-		if (grados >= 135 && grados <= 180 || grados <= -135 && grados >= -180) {
+		double grados = c.calculaRotacion(c.getMapa().getMolestoCurrentPosition());
+		if (grados > 45 && grados <= 135) {
 			this.setValor(true);
 		} else {
 			this.setValor(false);
