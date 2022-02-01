@@ -48,7 +48,11 @@ public class AgentTrainer extends AbstractPlayer {
 
 		c.percibe(percepcion);
 		ACTIONS accion = c.entrenar(percepcion);
-
+		try {
+			Thread.sleep(260);
+		} catch (InterruptedException e) {
+			System.out.println("Error en sleep");
+		}
 		return accion;
 	}
 

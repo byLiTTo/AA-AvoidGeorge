@@ -16,7 +16,6 @@ import tools.ElapsedCpuTimer;
 public class AgentPlayer extends AbstractPlayer {
 
 	private Cerebro c;
-	private int o = 0;
 
 	// =============================================================================
 	// CONSTRUCTORES
@@ -48,6 +47,12 @@ public class AgentPlayer extends AbstractPlayer {
 
 		c.percibe(percepcion);
 		ACTIONS accion = c.pensar(percepcion);
+		try {
+			Thread.sleep(260);
+		} catch (InterruptedException e) {
+			System.out.println("Error en sleep");
+		}
+
 		return accion;
 	}
 

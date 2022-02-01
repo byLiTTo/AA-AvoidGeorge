@@ -26,6 +26,7 @@ public class Test {
 		String sampleOLETSController = "tracks.singlePlayer.advanced.olets.Agent";
 
 		String sampleMDPController = "uhu.AgentPlayer";
+		String sampleMDPTrainer = "uhu.AgentTrainer";
 
 		// Load available games
 		String spGamesCollection = "examples/all_games_sp.csv";
@@ -37,7 +38,7 @@ public class Test {
 
 		// Game and level to play
 		int gameIdx = 3;
-		int levelIdx = 3; // level names from 0 to 4 (game_lvlN.txt).
+		int levelIdx = 0; // level names from 0 to 4 (game_lvlN.txt).
 		String gameName = games[gameIdx][1];
 		String game = games[gameIdx][0];
 		String level1 = game.replace(gameName, gameName + "_lvl" + levelIdx);

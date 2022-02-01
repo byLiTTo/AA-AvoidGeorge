@@ -98,15 +98,18 @@ public class Cerebro {
 
 		this.mapa = new Mapa(dim.width / bloque, dim.height / bloque, bloque, percepcion);
 
-		this.currentState = STATES.SIGUIENDO_CALMADO_ARRIBA;
-		this.lastState = STATES.SIGUIENDO_CALMADO_ARRIBA;
+		this.currentState = STATES.LANZANDO_CIGARRO;
+		this.lastState = STATES.LANZANDO_CIGARRO;
+
+		this.lastAction = ACTIONS.ACTION_USE;
+
+		System.out.println("N ESTADOS: " + getStates().size());
+		System.out.println("N ACCIONES: " + getActions().size());
 
 		this.qlearning = new QLearning(getStates(), getActions(), new String("QTABLE.txt"));
 
 		this.reward = 0;
 		this.globalReward = 0;
-
-		generaArbol();
 	}
 
 	// =============================================================================
@@ -160,7 +163,7 @@ public class Cerebro {
 	 * @param percepcion Observacion del estado actual.
 	 */
 	private void analizarMapa(StateObservation percepcion) {
-		this.mapa.actualiza(percepcion, Visualizaciones.ENCENDIDA);
+		this.mapa.actualiza(percepcion, Visualizaciones.APAGADA);
 	}
 
 	/**
@@ -170,7 +173,7 @@ public class Cerebro {
 	 */
 	private void actualizaState(StateObservation percepcion) {
 		this.lastState = this.currentState;
-		this.currentState = this.raiz.decidir(this);
+		this.currentState = this.compruebaEstado();
 	}
 
 	/**
@@ -201,222 +204,9 @@ public class Cerebro {
 		return lastAction;
 	}
 
-	/**
-	 * Devuelve la recomensa total obtenida por el agente
-	 * 
-	 * @return double : devuelve la recompensa total
-	 */
-	public double getGR() {
-		return this.globalReward;
-	}
-
 	// =============================================================================
-	// AUXILIARES
+	// METODOS PARA LA TABLA Q
 	// =============================================================================
-
-	public double calculaRotacion(Vector2d c) {
-		Vector2d avatar = this.mapa.getCurrentAvatarPosition();
-		double angulo = Math.atan2(avatar.y - c.y, avatar.x - c.x);
-		return Math.toDegrees(angulo);
-	}
-
-	/**
-	 * Calcula la recompensa para la ultima accion realizada
-	 * 
-	 * @param lastState    Estado anterior
-	 * @param lastAction   ultima accion realizada
-	 * @param currentState Estado actual
-	 * @return double : devuelve la recompensa calculada
-	 */
-	private double getReward(STATES lastState, ACTIONS lastAction, STATES currentState) {
-//		this.reward = -50;
-//		Casilla currentCasilla = this.mapa.getAvatar();
-//		Casilla lastCasilla = this.mapa.getLastAvatar();
-//
-//		switch (lastState) {
-//		case ESTADO_4:
-//		case ESTADO_8:
-//		case ESTADO_12:
-//			if (this.checkNorthMovement(lastCasilla.getY(), currentCasilla.getY()))
-//				this.reward = 50;
-//			break;
-//		case ESTADO_2:
-//		case ESTADO_6:
-//		case ESTADO_10:
-//		case ESTADO_13:
-//			if (this.checkSouthMovement(lastCasilla.getY(), currentCasilla.getY()))
-//				this.reward = 50;
-//			break;
-//		case ESTADO_1:
-//		case ESTADO_5:
-//		case ESTADO_9:
-//			if (this.checkEastMovement(lastCasilla.getX(), currentCasilla.getX()))
-//				this.reward = 50;
-//			break;
-//		case ESTADO_3:
-//		case ESTADO_7:
-//		case ESTADO_11:
-//			if (this.checkWestMovement(lastCasilla.getX(), currentCasilla.getX()))
-//				this.reward = 50;
-//			break;
-//		}
-//
-		return 0;
-	}
-
-	/**
-	 * Comprueba si el agente se ha movido hacia el norte
-	 * 
-	 * @param a Posicion Y de la ultima casilla
-	 * @param b Posicion Y de la casilla actual
-	 * @return boolean : devuelve true si el agente se mueve hacia el norte. False
-	 *         en caso contrario
-	 */
-	private boolean checkNorthMovement(int a, int b) {
-		if ((a - b) > 0)
-			return true;
-		else
-			return false;
-	}
-
-	/**
-	 * Comprueba si el agente se ha movido hacia el sur
-	 * 
-	 * @param a Posicion Y de la ultima casilla
-	 * @param b Posicion Y de la casilla actual
-	 * @return booelan : devuelve true si el agente se mueve hacia el sur. False en
-	 *         caso contrario
-	 */
-	private boolean checkSouthMovement(int a, int b) {
-		if ((a - b) < 0)
-			return true;
-		else
-			return false;
-	}
-
-	/**
-	 * Comprueba si el agente se ha movido hacia el este
-	 * 
-	 * @param a Posicion X de la ultima casilla
-	 * @param b Posicion X de la casilla actual
-	 * @return boolean : devuelve true si el agente se mueve hacia el este. False en
-	 *         caso contrario
-	 */
-	private boolean checkEastMovement(int a, int b) {
-		if ((b - a) > 0)
-			return true;
-		else
-			return false;
-	}
-
-	/**
-	 * Comprueba si el agente se ha movido hacia el oeste
-	 * 
-	 * @param a Posicion X de la ultima casilla
-	 * @param b Posicion X de la casilla actual
-	 * @return boolean : devuelve true si el agente se mueve hacia el oeste. False
-	 *         en caso contrario
-	 */
-	private boolean checkWestMovement(int a, int b) {
-		if ((b - a) < 0)
-			return true;
-		else
-			return false;
-	}
-
-	/**
-	 * Devuelve los estados en los que se puede encontrar el agente
-	 * 
-	 * @return ArrayList STATES : devuelve un ArrayList con los estados
-	 */
-	private ArrayList<STATES> getStates() {
-		// CAMINODERECHA, CAMINOABAJO, CAMINOARRIBA, CAMINOATRAS
-		return new ArrayList<STATES>(Arrays.asList(STATES.HUYENDO_ARRIBA, STATES.HUYENDO_ABAJO,
-				STATES.HUYENDO_IZQUIERDA, STATES.HUYENDO_DERECHA,
-
-				STATES.SIGUIENDO_CALMADO_ARRIBA, STATES.SIGUIENDO_CALMADO_ABAJO, STATES.SIGUIENDO_CALMADO_IZQUIERDA,
-				STATES.SIGUIENDO_CALMADO_DERECHA,
-
-				STATES.SIGUIENDO_MOLESTO_ARRIBA, STATES.SIGUIENDO_MOLESTO_ABAJO, STATES.SIGUIENDO_MOLESTO_IZQUIERDA,
-				STATES.SIGUIENDO_MOLESTO_DERECHA,
-
-				STATES.LANZANDO_CIGARRO));
-	}
-
-	/**
-	 * Devuelve las acciones que puede realizar al agente
-	 * 
-	 * @return ArrayList ACTIONS : devuelve un ArrayList con las acciones
-	 */
-	private ArrayList<ACTIONS> getActions() {
-		return new ArrayList<ACTIONS>(Arrays.asList(ACTIONS.ACTION_UP, ACTIONS.ACTION_DOWN, ACTIONS.ACTION_LEFT,
-				ACTIONS.ACTION_RIGHT, ACTIONS.ACTION_USE));
-	}
-
-	/**
-	 * Crea el arbol de decision del agente
-	 */
-	private void generaArbol() {
-
-		// INICIALIZACION DE PREGUNTAS ===================================
-		// Arbol HUYENDO
-		this.enemigoCerca = new EnemigoCerca();
-		this.enemigoArriba = new EnemigoArriba();
-		this.enemigoAbajo = new EnemigoAbajo();
-		this.enemigoIzquierda = new EnemigoIzquierda();
-		this.enemigoDerecha = new EnemigoDerecha();
-
-		this.muroArriba = new MuroArriba();
-		this.muroAbajo = new MuroAbajo();
-		this.muroIzquierda = new MuroIzquierda();
-		this.muroDerecha = new MuroDerecha();
-		
-		// INICIALIZACION DE ESTADOS =====================================
-		// Estados
-		this.huye_arriba = new Estado(STATES.HUYENDO_ARRIBA);
-		this.huye_abajo = new Estado(STATES.HUYENDO_ABAJO);
-		this.huye_izquierda = new Estado(STATES.HUYENDO_IZQUIERDA);
-		this.huye_derecha = new Estado(STATES.HUYENDO_DERECHA);
-
-		// ESTRUCTURA DE ARBOL ===========================================
-		this.raiz = this.enemigoCerca;
-		/* Hay Enemigo cerca? */
-		/* .SI */this.enemigoCerca.setYes(this.enemigoArriba);
-		/* ......Hay enemigo arriba? */
-		/* .......SI */this.enemigoArriba.setYes(this.muroAbajo);
-		/* ..........Hay muro Abajo? */
-		/* ...........SI */this.muroAbajo.setYes(this.muroIzquierda);
-		/* ................Hay muro izquierda */
-		/* .................SI */this.muroIzquierda.setYes(this.muroDerecha);
-		/* ......................Hay muro derecha */
-		/* .......................SI */this.muroDerecha.setYes(quieto);
-		/* .......................NO */this.muroDerecha.setNo(huye_derecha);
-		/* .................NO */this.muroIzquierda.setNo(huye_izquierda);
-		/* ...........NO */this.muroAbajo.setNo(huye_abajo);
-		/* .......NO */this.enemigoArriba.setNo(this.enemigoAbajo);
-		/* ..........Hay Enemigo abajo? */
-		/* ...........SI */this.enemigoAbajo.setYes(huye_arriba);
-		/* ...........NO */this.enemigoAbajo.setNo(this.enemigoIzquierda);
-		/* ...............Hay Enemigo Izquierda? */
-		/* ................SI */this.enemigoIzquierda.setYes(huye_derecha);
-		/* ................NO */this.enemigoIzquierda.setNo(this.enemigoDerecha);
-		/* ....................Hay Enemigo Derecha? */
-		/* .....................SI */this.enemigoDerecha.setYes(huye_izquierda);
-		/* .....................NO */this.enemigoDerecha.setNo(quieto);
-		/* .NO */this.enemigoCerca.setNo(this.sanoArriba);
-		/* ......Hay SANO ARRIBA? */
-		/* .......SI */this.sanoArriba.setYes(huye_arriba);
-		/* .......NO */this.sanoArriba.setNo(this.sanoAbajo);
-		/* ............Hay sano abajo? */
-		/* .............SI */this.sanoAbajo.setYes(huye_abajo);
-		/* .............NO */this.sanoAbajo.setNo(this.sanoIzquierda);
-		/* ..................Hay sano izquierda */
-		/* ...................SI */this.sanoIzquierda.setYes(huye_izquierda);
-		/* ...................NO */this.sanoIzquierda.setNo(this.sanoDerecha);
-		/* ........................Hay sano derecha */
-		/* .........................SI */this.sanoDerecha.setYes(huye_derecha);
-		/* .........................NO */this.sanoDerecha.setNo(quieto);
-	}
 
 	/**
 	 * Guarda la tabla-Q del agente en un fichero
@@ -450,5 +240,166 @@ public class Cerebro {
 	 */
 	public void saveEpsilon(String path) {
 		this.qlearning.saveEpsilon(path);
+	}
+
+	// =============================================================================
+	// AUXILIARES
+	// =============================================================================
+
+	/**
+	 * Devuelve los estados en los que se puede encontrar el agente
+	 * 
+	 * @return ArrayList STATES : devuelve un ArrayList con los estados
+	 */
+	private ArrayList<STATES> getStates() {
+		return new ArrayList<STATES>(Arrays.asList(STATES.HUYENDO_ARRIBA, STATES.HUYENDO_ABAJO,
+				STATES.HUYENDO_IZQUIERDA, STATES.HUYENDO_DERECHA,
+
+//				STATES.SIGUIENDO_CALMADO_ARRIBA, STATES.SIGUIENDO_CALMADO_ABAJO, STATES.SIGUIENDO_CALMADO_IZQUIERDA,
+//				STATES.SIGUIENDO_CALMADO_DERECHA,
+//
+				STATES.SIGUIENDO_MOLESTO_ARRIBA, STATES.SIGUIENDO_MOLESTO_ABAJO, STATES.SIGUIENDO_MOLESTO_IZQUIERDA,
+				STATES.SIGUIENDO_MOLESTO_DERECHA,
+
+				STATES.LANZANDO_CIGARRO));
+	}
+
+	/**
+	 * Devuelve las acciones que puede realizar al agente
+	 * 
+	 * @return ArrayList ACTIONS : devuelve un ArrayList con las acciones
+	 */
+	private ArrayList<ACTIONS> getActions() {
+		return new ArrayList<ACTIONS>(Arrays.asList(ACTIONS.ACTION_UP, ACTIONS.ACTION_DOWN, ACTIONS.ACTION_LEFT,
+				ACTIONS.ACTION_RIGHT, ACTIONS.ACTION_USE));
+	}
+
+	/**
+	 * Calcula la recompensa para la ultima accion realizada
+	 * 
+	 * @param lastState    Estado anterior
+	 * @param lastAction   ultima accion realizada
+	 * @param currentState Estado actual
+	 * @return double : devuelve la recompensa calculada
+	 */
+	private double getReward(STATES lastState, ACTIONS lastAction, STATES currentState) {
+
+		switch (currentState) {
+		case HUYENDO_ARRIBA:
+		case HUYENDO_ABAJO:
+		case HUYENDO_IZQUIERDA:
+		case HUYENDO_DERECHA:
+			if (this.mapa.getEnemyCurrentDistanceFrom(this.mapa.getCurrentAvatarPosition()) >= this.mapa
+					.getEnemyLastDistanceFrom(this.mapa.getLastAvatarLastPosition())) {
+				return 10;
+			} else {
+				return -5;
+			}
+
+		case SIGUIENDO_MOLESTO_ARRIBA:
+		case SIGUIENDO_MOLESTO_ABAJO:
+		case SIGUIENDO_MOLESTO_IZQUIERDA:
+		case SIGUIENDO_MOLESTO_DERECHA:
+			if (this.mapa.getMolestoCurrentDistanceFrom(this.mapa.getCurrentAvatarPosition()) < this.mapa
+					.getMolestoLastDistanceFrom(this.mapa.getLastAvatarLastPosition())) {
+				return 10;
+			} else {
+				return -5;
+			}
+
+		default:
+			return 0;
+		}
+
+	}
+
+	public double calculaRotacion(Vector2d c) {
+		Vector2d avatar = this.mapa.getCurrentAvatarPosition();
+		double angulo = Math.atan2(avatar.y - c.y, avatar.x - c.x);
+		return Math.toDegrees(angulo);
+	}
+
+	// =============================================================================
+	// COMPRUEBA ESTADO
+	// =============================================================================
+	private STATES compruebaEstado() {
+
+		switch (hayEnemigoCerca()) {
+		/* ENEMIGO ARRIBA */ case 0:
+			return STATES.HUYENDO_ABAJO;
+		/* ENEMIGO ABAJO */ case 1:
+			return STATES.HUYENDO_ARRIBA;
+		/* ENEMIGO IZQUIERDA */ case 2:
+			return STATES.HUYENDO_DERECHA;
+		/* ENEMIGO DERECHA */ case 3:
+			return STATES.HUYENDO_IZQUIERDA;
+		default:
+			boolean hayMolestos = (this.mapa.getCurrentMolestos() >= 1) ? true : false;
+			if (hayMolestos) {
+				switch (hayMolestoCerca()) {
+				default:
+					switch (dondeEstaMolesto()) {
+					/* HACIA ARRIBA */ case 0:
+						return STATES.SIGUIENDO_MOLESTO_ARRIBA;
+					/* HACIA ABAJO */ case 1:
+						return STATES.SIGUIENDO_MOLESTO_ABAJO;
+					/* HACIA IZQUIERDA */ case 2:
+						return STATES.SIGUIENDO_MOLESTO_IZQUIERDA;
+					/* HACIA DERECHA */ case 3:
+						return STATES.SIGUIENDO_MOLESTO_DERECHA;
+					default:
+						return STATES.LANZANDO_CIGARRO;
+					}
+				}
+			} else {
+				return STATES.LANZANDO_CIGARRO;
+			}
+		}
+
+	}
+
+	private int hayEnemigoCerca() {
+		if (this.mapa.getDistanciaPeligro() >= this.mapa
+				.getEnemyCurrentDistanceFrom(this.mapa.getCurrentAvatarPosition())) {
+			double grados = this.calculaRotacion(this.mapa.getEnemyCurrentPosition());
+			if (grados > 45 && grados <= 135) {
+				return 0;
+			} else if (grados < -45 && grados >= -135) {
+				return 1;
+			} else if (grados >= 0 && grados <= 45 || grados <= 0 && grados >= -45) {
+				return 2;
+			} else {
+				return 3;
+			}
+
+//			else if (grados >= 135 && grados <= 180 || grados <= -135 && grados >= -180) {
+//				return 3;
+//			}
+
+		} else {
+			return -1;
+		}
+	}
+
+	private int hayMolestoCerca() {
+
+		return 0;
+	}
+
+	private int dondeEstaMolesto() {
+		double grados = this.calculaRotacion(this.mapa.getMolestoCurrentPosition());
+		if (grados > 45 && grados <= 135) {
+			return 0;
+		} else if (grados < -45 && grados >= -135) {
+			return 1;
+		} else if (grados >= 0 && grados <= 45 || grados <= 0 && grados >= -45) {
+			return 2;
+		} else {
+			return 3;
+		}
+
+//		else if (grados >= 135 && grados <= 180 || grados <= -135 && grados >= -180) {
+//			return 3;
+//		}
 	}
 }
