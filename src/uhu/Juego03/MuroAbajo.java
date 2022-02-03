@@ -11,7 +11,7 @@ public class MuroAbajo extends NodoLogico {
 	@Override
 	public STATES decidir(Cerebro c) {
 
-		Casilla avatar = c.getMapa().getCurrentAvatarPosition();
+		Casilla avatar = c.getMapa().getAvatarCurrentPosition();
 		Casilla abajo = c.getMapa().getNodo(avatar.getX(), avatar.getY() + 1);
 
 		if (abajo.getEstado().equals(MURO)) {

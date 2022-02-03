@@ -55,13 +55,19 @@ public final class Constantes {
 	}
 
 	public enum STATES {
-		HUYENDO_ARRIBA, HUYENDO_ABAJO, HUYENDO_IZQUIERDA, HUYENDO_DERECHA,
+		huyendo_Earriba, huyendo_Eabajo, huyendo_Eizquierda, huyendo_Ederecha,
 
-//		SIGUIENDO_CALMADO_ARRIBA, SIGUIENDO_CALMADO_ABAJO, SIGUIENDO_CALMADO_IZQUIERDA, SIGUIENDO_CALMADO_DERECHA,
+		huyendo_Earriba_Babajo, huyendo_Eabajo_Barriba, huyendo_Eizquierda_Bderecha, huyendo_Ederecha_Bizquierda,
 
-		SIGUIENDO_MOLESTO_ARRIBA, SIGUIENDO_MOLESTO_ABAJO, SIGUIENDO_MOLESTO_IZQUIERDA, SIGUIENDO_MOLESTO_DERECHA,
+		huyendo_Eabajo_esquina0, huyendo_Ederecha_esquina0,
 
-		LANZANDO_CIGARRO
+		huyendo_Eabajo_esquina1, huyendo_Eizquierda_esquina1,
+
+		huyendo_Earriba_esquina2, huyendo_Ederecha_esquina2,
+
+		huyendo_Earriba_esquina3, huyendo_Eizquierda_esquina3,
+
+		lanzando_cigarro,
 	}
 
 }

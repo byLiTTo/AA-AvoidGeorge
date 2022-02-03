@@ -8,7 +8,7 @@ public class MolestoCerca extends NodoLogico {
 	@Override
 	public STATES decidir(Cerebro c) {
 		if (c.getMapa().getDistanciaLanzamiento() >= c.getMapa()
-				.getMolestoCurrentDistanceFrom(c.getMapa().getCurrentAvatarPosition())) {
+				.getMolestoCurrentDistanceFrom(c.getMapa().getAvatarCurrentPosition())) {
 			this.setValor(true);
 		} else {
 			this.setValor(false);
