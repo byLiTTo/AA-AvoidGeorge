@@ -15,7 +15,8 @@ import ontology.Types.ACTIONS;
 import static uhu.Constantes.*;
 
 /**
- * Clase que nos permitará implementar la técnica q-learning de aprendizaje por refuerzo
+ * Clase que nos permitarï¿½ implementar la tï¿½cnica q-learning de aprendizaje por
+ * refuerzo
  * 
  * @author Carlos Garcia Silva
  * @author Daniel Perez Rodriguez
@@ -23,7 +24,8 @@ import static uhu.Constantes.*;
 public class QLearning {
 
 	private double alpha; // Porcentaje de aprendizaje en cada tick
-	private double gamma = 0.5; // Porcentaje para tener en cuenta la siguiente acción con mejor resultado. (Mejora las acciones a largo plazo)
+	private double gamma = 0.5; // Porcentaje para tener en cuenta la siguiente acciï¿½n con mejor resultado.
+								// (Mejora las acciones a largo plazo)
 	private double epsilon; // Porcentaje de acciones aleatorias
 	private double epsilonInicial = -1;
 	private double defaultVarInit = 0.9;
@@ -34,22 +36,25 @@ public class QLearning {
 	private ArrayList<STATES> states;
 	private ArrayList<ACTIONS> actions;
 	private double[][] qTable;
-	
+
 	private String pathTimer;
-	
 
 	/**
 	 * Constructors de la clase
-	 * @param states Posibles estados que puede tener el agente. Representa las filas de la tabla-Q
-	 * @param actions Posibles acciones que puede tener el agente. Representa las filas de la tabla-Q
-	 * @param path Ruta donde guardar los datos de la tabla-Q una vez que el agente termine de jugar
+	 * 
+	 * @param states  Posibles estados que puede tener el agente. Representa las
+	 *                filas de la tabla-Q
+	 * @param actions Posibles acciones que puede tener el agente. Representa las
+	 *                filas de la tabla-Q
+	 * @param path    Ruta donde guardar los datos de la tabla-Q una vez que el
+	 *                agente termine de jugar
 	 */
 	public QLearning(ArrayList<STATES> states, ArrayList<ACTIONS> actions, String path) {
 		this.states = states;
 		this.actions = actions;
 
 		this.qTable = new double[states.size()][actions.size()];
-		
+
 		// Para guardar timer
 		this.pathTimer = "timer.txt";
 		File file = new File(this.pathTimer);
@@ -58,7 +63,7 @@ public class QLearning {
 		} else {
 			this.loadTimer();
 		}
-		
+
 		// Para guardar Tabla-Q
 		file = new File(path);
 		if (!file.exists()) {
@@ -68,22 +73,24 @@ public class QLearning {
 		}
 
 	}
-	
+
 	/**
 	 * Devuelve el valor de la variable timer
-	 * @return Devuelve el número de ticks totales almacenados
+	 * 
+	 * @return Devuelve el nï¿½mero de ticks totales almacenados
 	 */
 	public int getTimer() {
 		return this.timer;
 	}
 
 	/**
-	 * Actualiza la tabla-Q 
-	 * @param lastState Último estado en el que ha estado el agente
-	 * @param lastAction Última acción realizada por el agente
+	 * Actualiza la tabla-Q
+	 * 
+	 * @param lastState    ï¿½ltimo estado en el que ha estado el agente
+	 * @param lastAction   ï¿½ltima acciï¿½n realizada por el agente
 	 * @param currentState Estado actual en el que se encuentra el agente
-	 * @param reward Recompensa obtenida por el agente en la última acción
-	 * @return Devuelve la siguiente acción a realizar
+	 * @param reward       Recompensa obtenida por el agente en la ï¿½ltima acciï¿½n
+	 * @return Devuelve la siguiente acciï¿½n a realizar
 	 */
 	public ACTIONS update(STATES lastState, ACTIONS lastAction, STATES currentState, double reward) {
 		this.reward = reward;
@@ -109,9 +116,10 @@ public class QLearning {
 
 	/**
 	 * Devuelve un Q-valor
+	 * 
 	 * @param s Estado a seleccionar en la tabla
-	 * @param a Acción a seleccionar en la tabla
-	 * @return Devuelve el Q-valor asigando al par estado/acción
+	 * @param a Acciï¿½n a seleccionar en la tabla
+	 * @return Devuelve el Q-valor asigando al par estado/acciï¿½n
 	 */
 	public double getQValue(STATES s, ACTIONS a) {
 		int i = states.indexOf(s);
@@ -121,9 +129,10 @@ public class QLearning {
 	}
 
 	/**
-	 * Fija el Q-valor deseado para un par estado/acción
-	 * @param s Estado a seleccionar en la tabla
-	 * @param a Acción a seleccionar en la tabla
+	 * Fija el Q-valor deseado para un par estado/acciï¿½n
+	 * 
+	 * @param s      Estado a seleccionar en la tabla
+	 * @param a      Acciï¿½n a seleccionar en la tabla
 	 * @param qValue Q-valor a guardar
 	 */
 	public void setQValue(STATES s, ACTIONS a, double qValue) {
@@ -135,6 +144,7 @@ public class QLearning {
 
 	/**
 	 * Devuelve el mejor Q-valor asignado a un estado
+	 * 
 	 * @param state Estado a seleccionar
 	 * @return Devuelve un Q-valor
 	 */
@@ -152,11 +162,10 @@ public class QLearning {
 		return maxVal;
 	}
 
-	
-
 	/**
-	 * Devuelve una acción aleatoria
-	 * @return Devuelve una acción
+	 * Devuelve una acciï¿½n aleatoria
+	 * 
+	 * @return Devuelve una acciï¿½n
 	 */
 	public ACTIONS getRandomAction() {
 		Random rd = new Random(System.currentTimeMillis());
@@ -166,24 +175,26 @@ public class QLearning {
 	}
 
 	/**
-	 * Actualiza las variables alpha y epsilon en función del timer(ticks). A medida que aumente el timer, las acciones serán menos
-	 * aleatorias y aprenderá menos con cada acción
+	 * Actualiza las variables alpha y epsilon en funciï¿½n del timer(ticks). A medida
+	 * que aumente el timer, las acciones serï¿½n menos aleatorias y aprenderï¿½ menos
+	 * con cada acciï¿½n
 	 */
 	private void updateVar() {
-		double k = 5000; 
+		double k = 5000;
 		this.alpha = (this.defaultVarInit * k / (k + timer));
 		this.epsilon = ((this.defaultVarInit) * k / (k + timer));
-		if(this.epsilonInicial == -1)
+		if (this.epsilonInicial == -1)
 			this.epsilonInicial = this.epsilon;
-		
+
 		System.out.println("epsilon: " + this.epsilon);
 		timer++;
 	}
 
 	/**
-	 * Devuelve la acción a realizar en el estado actual
+	 * Devuelve la acciï¿½n a realizar en el estado actual
+	 * 
 	 * @param currentState Estado actual
-	 * @return Devuelve una acción
+	 * @return Devuelve una acciï¿½n
 	 */
 	public ACTIONS nextAction(STATES currentState) {
 		Random rd = new Random(System.currentTimeMillis());
@@ -195,12 +206,13 @@ public class QLearning {
 			return getRandomAction();
 		}
 	}
-	
+
 	/**
-	 * Devuelve la mejor acción a realizar a partir de un estado. En caso de que existan dos acciones con el mismo Q-valor,
-	 * se elegirá una de las dos al azar 
+	 * Devuelve la mejor acciï¿½n a realizar a partir de un estado. En caso de que
+	 * existan dos acciones con el mismo Q-valor, se elegirï¿½ una de las dos al azar
+	 * 
 	 * @param state Estado a seleccionar
-	 * @return Devuelve una acción
+	 * @return Devuelve una acciï¿½n
 	 */
 	public ACTIONS getBestAction(STATES state) {
 		int i = states.indexOf(state);
@@ -229,10 +241,12 @@ public class QLearning {
 	}
 
 	/**
-	 * Devuelve la mejor acción a realizar a partir de un estado. En caso de que existan dos acciones con el mismo Q-valor,
-	 * se elegirá la primera encontrada en la tabbla
+	 * Devuelve la mejor acciï¿½n a realizar a partir de un estado. En caso de que
+	 * existan dos acciones con el mismo Q-valor, se elegirï¿½ la primera encontrada
+	 * en la tabbla
+	 * 
 	 * @param currentState Estado a seleccionar
-	 * @return Devuelve una acción
+	 * @return Devuelve una acciï¿½n
 	 */
 	public ACTIONS nextOnlyOneBestAction(STATES currentState) {
 		int i = states.indexOf(currentState);
@@ -251,19 +265,20 @@ public class QLearning {
 
 	/**
 	 * Guarda la tabla-Q en un fichero
+	 * 
 	 * @param path Ruta donde guardar la tabla
 	 */
 	public void writeTable(String path) {
 		try {
 			FileWriter fichero;
-			
+
 			fichero = new FileWriter(path);
 			String fila = "";
 			for (int i = 0; i < states.size(); i++) {
 				fila = "";
 				for (int j = 0; j < actions.size(); j++) {
 					if (j != 0)
-						fila += "," + qTable[i][j];
+						fila += "\t" + qTable[i][j];
 					else
 						fila += qTable[i][j];
 				}
@@ -278,6 +293,7 @@ public class QLearning {
 
 	/**
 	 * Lee la tabla-Q guardada en un fichero
+	 * 
 	 * @param path Ruta donde leer la tabla
 	 */
 	public void readTable(String path) {
@@ -298,7 +314,7 @@ public class QLearning {
 			fichero.close();
 			for (int i = 0; i < stringFichero.size(); i++) {
 				aux = stringFichero.get(i);
-				parts = aux.split(",");
+				parts = aux.split("\t");
 
 				for (int j = 0; j < parts.length; j++) {
 					qTable[i][j] = Double.parseDouble(parts[j]);
@@ -322,7 +338,7 @@ public class QLearning {
 		}
 		System.out.println();
 	}
-	
+
 	/**
 	 * Inicia el timer y crea el fichero para almacenarlo
 	 */
@@ -330,9 +346,9 @@ public class QLearning {
 		this.timer = 0;
 		this.saveTimer();
 	}
-	
+
 	/**
-	 * Guarda la variable timer en un fichero 
+	 * Guarda la variable timer en un fichero
 	 */
 	public void saveTimer() {
 		try {
@@ -346,7 +362,7 @@ public class QLearning {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * Lee el timer de un fichero
 	 */
@@ -375,10 +391,10 @@ public class QLearning {
 			System.out.println("An error occurred.");
 			e.printStackTrace();
 		}
-		
+
 		this.timer = t;
 	}
-	
+
 	public void saveEpsilon(String path) {
 		try {
 			FileWriter fichero;

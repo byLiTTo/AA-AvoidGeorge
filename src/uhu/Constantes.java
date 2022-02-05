@@ -55,19 +55,18 @@ public final class Constantes {
 	}
 
 	public enum STATES {
-		huyendo_Earriba, huyendo_Eabajo, huyendo_Eizquierda, huyendo_Ederecha,
-
-		huyendo_Earriba_Babajo, huyendo_Eabajo_Barriba, huyendo_Eizquierda_Bderecha, huyendo_Ederecha_Bizquierda,
-
-		huyendo_Eabajo_esquina0, huyendo_Ederecha_esquina0,
-
-		huyendo_Eabajo_esquina1, huyendo_Eizquierda_esquina1,
-
-		huyendo_Earriba_esquina2, huyendo_Ederecha_esquina2,
-
-		huyendo_Earriba_esquina3, huyendo_Eizquierda_esquina3,
-
-		lanzando_cigarro,
+		lanzando_cigarro, huyendo_Earriba, huyendo_Eabajo, huyendo_Eizquierda, huyendo_Ederecha,
+		huyendo_Eabajo_esquina0, huyendo_Ederecha_esquina0, huyendo_Eabajo_esquina1, huyendo_Eizquierda_esquina1,
+		huyendo_Earriba_esquina2, huyendo_Ederecha_esquina2, huyendo_Earriba_esquina3, huyendo_Eizquierda_esquina3,
+		huyendo_Eabajo_Barriba_Lizquierdo, huyendo_Eizquierda_Barriba_Lizquierdo, huyendo_Ederecha_Barriba_Lizquierdo,
+		huyendo_Eabajo_Barriba_Lderecho, huyendo_Eizquierda_Barriba_Lderecho, huyendo_Ederecha_Barriba_Lderecho,
+		huyendo_Earriba_Babajo_Lizquierdo, huyendo_Eizquierda_Babajo_Lizquierdo, huyendo_Ederecha_Babajo_Lizquierdo,
+		huyendo_Earriba_Babajo_Lderecho, huyendo_Eizquierda_Babajo_Lderecho, huyendo_Ederecha_Babajo_Lderecho,
+		huyendo_Earriba_Bizquierda_Lsuperior, huyendo_Eabajo_Bizquierda_Lsuperior,
+		huyendo_Ederecha_Bizquierda_Lsuperior, huyendo_Earriba_Bizquierda_Linferior,
+		huyendo_Eabajo_Bizquierda_Linferior, huyendo_Ederecha_Bizquierda_Linferior, huyendo_Earriba_Bderecha_Lsuperior,
+		huyendo_Eabajo_Bderecha_Lsuperior, huyendo_Eizquierda_Bderecha_Lsuperior, huyendo_Earriba_Bderecha_Linferior,
+		huyendo_Eabajo_Bderecha_Linferior, huyendo_Eizquierda_Bderecha_Linferior
 	}
 
 }

@@ -212,21 +212,23 @@ public class Cerebro {
 	 * @return ArrayList STATES : devuelve un ArrayList con los estados
 	 */
 	private ArrayList<STATES> getStates() {
-		return new ArrayList<STATES>(Arrays.asList(STATES.huyendo_Earriba, STATES.huyendo_Eabajo,
-				STATES.huyendo_Eizquierda, STATES.huyendo_Ederecha,
-
-				STATES.huyendo_Earriba_Babajo, STATES.huyendo_Eabajo_Barriba, STATES.huyendo_Eizquierda_Bderecha,
-				STATES.huyendo_Ederecha_Bizquierda,
-
-				STATES.huyendo_Eabajo_esquina0, STATES.huyendo_Ederecha_esquina0,
-
-				STATES.huyendo_Eabajo_esquina1, STATES.huyendo_Eizquierda_esquina1,
-
-				STATES.huyendo_Earriba_esquina2, STATES.huyendo_Ederecha_esquina2,
-
+		return new ArrayList<STATES>(Arrays.asList(STATES.lanzando_cigarro, STATES.huyendo_Earriba,
+				STATES.huyendo_Eabajo, STATES.huyendo_Eizquierda, STATES.huyendo_Ederecha,
+				STATES.huyendo_Eabajo_esquina0, STATES.huyendo_Ederecha_esquina0, STATES.huyendo_Eabajo_esquina1,
+				STATES.huyendo_Eizquierda_esquina1, STATES.huyendo_Earriba_esquina2, STATES.huyendo_Ederecha_esquina2,
 				STATES.huyendo_Earriba_esquina3, STATES.huyendo_Eizquierda_esquina3,
-
-				STATES.lanzando_cigarro));
+				STATES.huyendo_Eabajo_Barriba_Lizquierdo, STATES.huyendo_Eizquierda_Barriba_Lizquierdo,
+				STATES.huyendo_Ederecha_Barriba_Lizquierdo, STATES.huyendo_Eabajo_Barriba_Lderecho,
+				STATES.huyendo_Eizquierda_Barriba_Lderecho, STATES.huyendo_Ederecha_Barriba_Lderecho,
+				STATES.huyendo_Earriba_Babajo_Lizquierdo, STATES.huyendo_Eizquierda_Babajo_Lizquierdo,
+				STATES.huyendo_Ederecha_Babajo_Lizquierdo, STATES.huyendo_Earriba_Babajo_Lderecho,
+				STATES.huyendo_Eizquierda_Babajo_Lderecho, STATES.huyendo_Ederecha_Babajo_Lderecho,
+				STATES.huyendo_Earriba_Bizquierda_Lsuperior, STATES.huyendo_Eabajo_Bizquierda_Lsuperior,
+				STATES.huyendo_Ederecha_Bizquierda_Lsuperior, STATES.huyendo_Earriba_Bizquierda_Linferior,
+				STATES.huyendo_Eabajo_Bizquierda_Linferior, STATES.huyendo_Ederecha_Bizquierda_Linferior,
+				STATES.huyendo_Earriba_Bderecha_Lsuperior, STATES.huyendo_Eabajo_Bderecha_Lsuperior,
+				STATES.huyendo_Eizquierda_Bderecha_Lsuperior, STATES.huyendo_Earriba_Bderecha_Linferior,
+				STATES.huyendo_Eabajo_Bderecha_Linferior, STATES.huyendo_Eizquierda_Bderecha_Linferior));
 	}
 
 	/**
@@ -283,16 +285,37 @@ public class Cerebro {
 	}
 
 	private int EstoyEnEsquina() {
-		if (this.mapa.getNodo(1, 1).getEstado().equals(AVATAR)) {
+
+		// Cualquier esquina del mapa
+		int x = (int) this.mapa.getAvatarCurrentPosition().x / this.mapa.getBloque();
+		int y = (int) this.mapa.getAvatarCurrentPosition().y / this.mapa.getBloque();
+
+		if (this.mapa.getNodo(x - 1, y).getEstado().equals(MURO)
+				&& this.mapa.getNodo(x, y - 1).getEstado().equals(MURO)) {
 			return 0;
-		} else if (this.mapa.getNodo(this.mapa.getAncho() - 2, 1).getEstado().equals(AVATAR)) {
+		} else if (this.mapa.getNodo(x + 1, y).getEstado().equals(MURO)
+				&& this.mapa.getNodo(x, y - 1).getEstado().equals(MURO)) {
 			return 1;
-		} else if (this.mapa.getNodo(1, this.mapa.getAlto() - 2).getEstado().equals(AVATAR)) {
+		} else if (this.mapa.getNodo(x - 1, y).getEstado().equals(MURO)
+				&& this.mapa.getNodo(x, y + 1).getEstado().equals(MURO)) {
 			return 2;
-		} else if (this.mapa.getNodo(this.mapa.getAncho() - 2, this.mapa.getAlto() - 2).getEstado().equals(AVATAR)) {
+		} else if (this.mapa.getNodo(x + 1, y).getEstado().equals(MURO)
+				&& this.mapa.getNodo(x, y + 1).getEstado().equals(MURO)) {
 			return 3;
 		}
 		return -1;
+
+//		// Esquinas de los picos del mapa
+//		if (this.mapa.getNodo(1, 1).getEstado().equals(AVATAR)) {
+//			return 0;
+//		} else if (this.mapa.getNodo(this.mapa.getAncho() - 2, 1).getEstado().equals(AVATAR)) {
+//			return 1;
+//		} else if (this.mapa.getNodo(1, this.mapa.getAlto() - 2).getEstado().equals(AVATAR)) {
+//			return 2;
+//		} else if (this.mapa.getNodo(this.mapa.getAncho() - 2, this.mapa.getAlto() - 2).getEstado().equals(AVATAR)) {
+//			return 3;
+//		}
+//		return -1;
 	}
 
 	private int EstoyEnPeligro() {
@@ -316,7 +339,7 @@ public class Cerebro {
 		return -1;
 	}
 
-	private int EstoyEnBorde() {
+	private int TengoBorde() {
 		int x = (int) this.mapa.getAvatarCurrentPosition().x / this.mapa.getBloque();
 		int y = (int) this.mapa.getAvatarCurrentPosition().y / this.mapa.getBloque();
 
@@ -328,6 +351,67 @@ public class Cerebro {
 			return 2;
 		} else if (x == this.mapa.getAncho() - 2) {
 			return 3;
+		}
+		return -1;
+	}
+
+	private int LadoHorizontal() {
+		int x = (int) this.mapa.getAvatarCurrentPosition().x / this.mapa.getBloque();
+		int y = (int) this.mapa.getAvatarCurrentPosition().y / this.mapa.getBloque();
+
+		int xleft = x;
+		int xright = x;
+
+		for (int i = x - 1; i >= 0; i--) {
+			if (this.mapa.getNodo(i, y).getEstado().equals(MURO)) {
+				xleft = i;
+				break;
+			}
+		}
+
+		for (int i = x + 1; i < this.mapa.getAncho(); i++) {
+			if (this.mapa.getNodo(i, y).getEstado().equals(MURO)) {
+				xright = i;
+				break;
+			}
+		}
+
+		double distLeft = this.mapa.getAvatarCurrentPosition().dist((double) xleft, (double) y);
+		double distRight = this.mapa.getAvatarCurrentPosition().dist((double) xright, (double) y);
+
+		if (distLeft < distRight) {
+			return 0;
+		}
+		return -1;
+	}
+
+	private int LadoVertical() {
+		int x = (int) this.mapa.getAvatarCurrentPosition().x / this.mapa.getBloque();
+		int y = (int) this.mapa.getAvatarCurrentPosition().y / this.mapa.getBloque();
+
+		int yup = y;
+		int ydown = y;
+
+		for (int i = y - 1; i >= 0; i--) {
+			if (this.mapa.getNodo(x, i).getEstado().equals(MURO)) {
+				yup = i;
+				break;
+			}
+		}
+
+		for (int i = y + 1; i < this.mapa.getAlto(); i++) {
+			if (this.mapa.getNodo(x, i).getEstado().equals(MURO)) {
+				ydown = i;
+				break;
+			}
+		}
+
+		double distUp = this.mapa.getAvatarCurrentPosition().dist((double) x, (double) yup);
+		double distDown = this.mapa.getAvatarCurrentPosition().dist((double) x, (double) ydown);
+
+		if (distUp < distDown) {
+			System.out.println("MAS CERCA DE ARRIBA ---------------");
+			return 0;
 		}
 		return -1;
 	}
@@ -346,19 +430,38 @@ public class Cerebro {
 			case 3: // esquina3 - Esquina Inferior Derecha
 				return STATES.huyendo_Earriba_esquina3;
 			default:
-				switch (EstoyEnPeligro()) {
-				case 0:
-				case 1:
-				case 2:
+				switch (TengoBorde()) {
+				case 1: // Babajo - Borde debajo
+					switch (LadoHorizontal()) {
+					case 0: // Lizquierdo - Esta mas cerca del lado izquierdo
+						return STATES.huyendo_Earriba_Babajo_Lizquierdo;
+					default: // Lderecho - Esta mas cerca del lado derecho
+						return STATES.huyendo_Earriba_Babajo_Lderecho;
+					}
+				case 2: // Bizquierda - Borde en la izquierda
+					switch (LadoVertical()) {
+					case 0: // Lsuperior - Esta mas cerca de la parte superior
+						return STATES.huyendo_Earriba_Bizquierda_Lsuperior;
+					default: // Linferior - Esta mas cerca de la parte inferior
+						return STATES.huyendo_Earriba_Bizquierda_Linferior;
+					}
 				case 3:
-					switch (EstoyEnBorde()) {
-					case 1:
-						return STATES.huyendo_Earriba_Babajo;
-					default:
-						return STATES.huyendo_Earriba;
+					switch (LadoVertical()) {
+					case 0: // Lsuperior - Esta mas cerca de la parte superior
+						return STATES.huyendo_Earriba_Bderecha_Lsuperior;
+					default: // Linferior - Esta mas cerca de la parte inferior
+						return STATES.huyendo_Earriba_Bderecha_Linferior;
 					}
 				default:
-					return STATES.lanzando_cigarro;
+					switch (EstoyEnPeligro()) {
+					case 0:
+					case 1:
+					case 2:
+					case 3:
+						return STATES.huyendo_Earriba;
+					default:
+						return STATES.lanzando_cigarro;
+					}
 				}
 			}
 		case 1: // Eabajo - Enemigo Abajo del avatar
@@ -368,19 +471,38 @@ public class Cerebro {
 			case 1: // esquina0 - Esquina Superior Derecha
 				return STATES.huyendo_Eabajo_esquina1;
 			default:
-				switch (EstoyEnPeligro()) {
-				case 0:
-				case 1:
-				case 2:
+				switch (TengoBorde()) {
+				case 0: // Barriba - Borde arriba
+					switch (LadoHorizontal()) {
+					case 0: // Lizquierdo - Esta mas cerca del lado izquierdo
+						return STATES.huyendo_Eabajo_Barriba_Lizquierdo;
+					default: // Lderecho - Esta mas cerca del lado derecho
+						return STATES.huyendo_Eabajo_Barriba_Lderecho;
+					}
+				case 2: // Bizquierda - Borde en la izquierda
+					switch (LadoVertical()) {
+					case 0: // Lsuperior - Esta mas cerca de la parte superior
+						return STATES.huyendo_Eabajo_Bizquierda_Lsuperior;
+					default: // Linferior - Esta mas cerca de la parte inferior
+						return STATES.huyendo_Eabajo_Bizquierda_Linferior;
+					}
 				case 3:
-					switch (EstoyEnBorde()) {
-					case 0:
-						return STATES.huyendo_Eabajo_Barriba;
-					default:
-						return STATES.huyendo_Eabajo;
+					switch (LadoVertical()) {
+					case 0: // Lsuperior - Esta mas cerca de la parte superior
+						return STATES.huyendo_Eabajo_Bderecha_Lsuperior;
+					default: // Linferior - Esta mas cerca de la parte inferior
+						return STATES.huyendo_Eabajo_Bderecha_Linferior;
 					}
 				default:
-					return STATES.lanzando_cigarro;
+					switch (EstoyEnPeligro()) {
+					case 0:
+					case 1:
+					case 2:
+					case 3:
+						return STATES.huyendo_Eabajo;
+					default:
+						return STATES.lanzando_cigarro;
+					}
 				}
 			}
 		case 2: // Eizquierda - Enemigo Izquierda del avatar
@@ -390,19 +512,38 @@ public class Cerebro {
 			case 3: // esquina3 - Esquina Inferior Derecha
 				return STATES.huyendo_Eizquierda_esquina3;
 			default:
-				switch (EstoyEnPeligro()) {
-				case 0:
-				case 1:
-				case 2:
+				switch (TengoBorde()) {
+				case 0: // Barriba - Borde arriba
+					switch (LadoHorizontal()) {
+					case 0: // Lizquierdo - Esta mas cerca del lado izquierdo
+						return STATES.huyendo_Eizquierda_Barriba_Lizquierdo;
+					default: // Lderecho - Esta mas cerca del lado derecho
+						return STATES.huyendo_Eizquierda_Barriba_Lderecho;
+					}
+				case 1: // Babajo - Borde debajo
+					switch (LadoHorizontal()) {
+					case 0: // Lizquierdo - Esta mas cerca del lado izquierdo
+						return STATES.huyendo_Eizquierda_Babajo_Lizquierdo;
+					default: // Lderecho - Esta mas cerca del lado derecho
+						return STATES.huyendo_Eizquierda_Babajo_Lderecho;
+					}
 				case 3:
-					switch (EstoyEnBorde()) {
-					case 3:
-						return STATES.huyendo_Eizquierda_Bderecha;
-					default:
-						return STATES.huyendo_Eizquierda;
+					switch (LadoVertical()) {
+					case 0: // Lsuperior - Esta mas cerca de la parte superior
+						return STATES.huyendo_Eizquierda_Bderecha_Lsuperior;
+					default: // Linferior - Esta mas cerca de la parte inferior
+						return STATES.huyendo_Eizquierda_Bderecha_Linferior;
 					}
 				default:
-					return STATES.lanzando_cigarro;
+					switch (EstoyEnPeligro()) {
+					case 0:
+					case 1:
+					case 2:
+					case 3:
+						return STATES.huyendo_Eizquierda;
+					default:
+						return STATES.lanzando_cigarro;
+					}
 				}
 			}
 		case 3: // Ederecha - Enemigo Derecha del avatar
@@ -412,19 +553,38 @@ public class Cerebro {
 			case 2: // esquina2 - Esquina Inferior Izquierda
 				return STATES.huyendo_Ederecha_esquina2;
 			default:
-				switch (EstoyEnPeligro()) {
-				case 0:
-				case 1:
-				case 2:
-				case 3:
-					switch (EstoyEnBorde()) {
-					case 2:
-						return STATES.huyendo_Ederecha_Bizquierda;
-					default:
-						return STATES.huyendo_Ederecha;
+				switch (TengoBorde()) {
+				case 0: // Barriba - Borde arriba
+					switch (LadoHorizontal()) {
+					case 0: // Lizquierdo - Esta mas cerca del lado izquierdo
+						return STATES.huyendo_Ederecha_Barriba_Lizquierdo;
+					default: // Lderecho - Esta mas cerca del lado derecho
+						return STATES.huyendo_Ederecha_Barriba_Lderecho;
+					}
+				case 1: // Babajo - Borde debajo
+					switch (LadoHorizontal()) {
+					case 0: // Lizquierdo - Esta mas cerca del lado izquierdo
+						return STATES.huyendo_Ederecha_Babajo_Lizquierdo;
+					default: // Lderecho - Esta mas cerca del lado derecho
+						return STATES.huyendo_Ederecha_Babajo_Lderecho;
+					}
+				case 2: // Bizquierda - Borde en la izquierda
+					switch (LadoVertical()) {
+					case 0: // Lsuperior - Esta mas cerca de la parte superior
+						return STATES.huyendo_Ederecha_Bizquierda_Lsuperior;
+					default: // Linferior - Esta mas cerca de la parte inferior
+						return STATES.huyendo_Ederecha_Bizquierda_Linferior;
 					}
 				default:
-					return STATES.lanzando_cigarro;
+					switch (EstoyEnPeligro()) {
+					case 0:
+					case 1:
+					case 2:
+					case 3:
+						return STATES.huyendo_Ederecha;
+					default:
+						return STATES.lanzando_cigarro;
+					}
 				}
 			}
 		default:
@@ -432,49 +592,4 @@ public class Cerebro {
 		}
 
 	}
-
-//	private int hayEnemigoCerca() {
-//		if (this.mapa.getDistanciaPeligro() >= this.mapa
-//				.getEnemyCurrentDistanceFrom(this.mapa.getAvatarCurrentPosition())) {
-//			double grados = this.calculaRotacion(this.mapa.getEnemyCurrentPosition());
-//			if (grados > 45 && grados <= 135) {
-//				return 0;
-//			} else if (grados < -45 && grados >= -135) {
-//				return 1;
-//			} else if (grados >= 0 && grados <= 45 || grados <= 0 && grados >= -45) {
-//				return 2;
-//			} else {
-//				return 3;
-//			}
-//
-////			else if (grados >= 135 && grados <= 180 || grados <= -135 && grados >= -180) {
-////				return 3;
-////			}
-//
-//		} else {
-//			return -1;
-//		}
-//	}
-//
-//	private int hayMolestoCerca() {
-//
-//		return 0;
-//	}
-//
-//	private int dondeEstaMolesto() {
-//		double grados = this.calculaRotacion(this.mapa.getMolestoCurrentPosition());
-//		if (grados > 45 && grados <= 135) {
-//			return 0;
-//		} else if (grados < -45 && grados >= -135) {
-//			return 1;
-//		} else if (grados >= 0 && grados <= 45 || grados <= 0 && grados >= -45) {
-//			return 2;
-//		} else {
-//			return 3;
-//		}
-//
-////		else if (grados >= 135 && grados <= 180 || grados <= -135 && grados >= -180) {
-////			return 3;
-////		}
-//	}
 }

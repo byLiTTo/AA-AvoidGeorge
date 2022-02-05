@@ -80,6 +80,7 @@ public class Mapa {
 		this.distanciaPeligro = this.bloque * 4.5;
 
 		System.out.println(this.bloque);
+		percepcion.getFromAvatarSpritesPositions();
 
 		actualiza(percepcion, Visualizaciones.APAGADA);
 	}
