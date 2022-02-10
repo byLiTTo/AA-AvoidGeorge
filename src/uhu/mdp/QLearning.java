@@ -33,7 +33,7 @@ public class QLearning {
 
 	private double reward;
 
-	private ArrayList<STATES> states;
+	private ArrayList<Integer> states;
 	private ArrayList<ACTIONS> actions;
 	private double[][] qTable;
 
@@ -49,14 +49,14 @@ public class QLearning {
 	 * @param path    Ruta donde guardar los datos de la tabla-Q una vez que el
 	 *                agente termine de jugar
 	 */
-	public QLearning(ArrayList<STATES> states, ArrayList<ACTIONS> actions, String path) {
+	public QLearning(ArrayList<Integer> states, ArrayList<ACTIONS> actions, String path) {
 		this.states = states;
 		this.actions = actions;
 
 		this.qTable = new double[states.size()][actions.size()];
 
 		// Para guardar timer
-		this.pathTimer = "timer.txt";
+		this.pathTimer = "src/uhu/mdp/resources/timer.txt";
 		File file = new File(this.pathTimer);
 		if (!file.exists()) {
 			this.initTimer();
@@ -92,7 +92,7 @@ public class QLearning {
 	 * @param reward       Recompensa obtenida por el agente en la �ltima acci�n
 	 * @return Devuelve la siguiente acci�n a realizar
 	 */
-	public ACTIONS update(STATES lastState, ACTIONS lastAction, STATES currentState, double reward) {
+	public ACTIONS update(int lastState, ACTIONS lastAction, int currentState, double reward) {
 		this.reward = reward;
 		double sample = reward + gamma * getMaxQValue(currentState);
 		double newQValue = (1 - alpha) * getQValue(lastState, lastAction) + alpha * sample;
@@ -121,8 +121,8 @@ public class QLearning {
 	 * @param a Acci�n a seleccionar en la tabla
 	 * @return Devuelve el Q-valor asigando al par estado/acci�n
 	 */
-	public double getQValue(STATES s, ACTIONS a) {
-		int i = states.indexOf(s);
+	public double getQValue(int s, ACTIONS a) {
+		int i = s;
 		int j = actions.indexOf(a);
 
 		return this.qTable[i][j];
@@ -135,8 +135,8 @@ public class QLearning {
 	 * @param a      Acci�n a seleccionar en la tabla
 	 * @param qValue Q-valor a guardar
 	 */
-	public void setQValue(STATES s, ACTIONS a, double qValue) {
-		int i = states.indexOf(s);
+	public void setQValue(int s, ACTIONS a, double qValue) {
+		int i = s;
 		int j = actions.indexOf(a);
 
 		this.qTable[i][j] = qValue;
@@ -148,8 +148,8 @@ public class QLearning {
 	 * @param state Estado a seleccionar
 	 * @return Devuelve un Q-valor
 	 */
-	public double getMaxQValue(STATES state) {
-		int i = states.indexOf(state);
+	public double getMaxQValue(int state) {
+		int i = state;
 
 		double maxVal = Double.MIN_VALUE;
 
@@ -180,13 +180,15 @@ public class QLearning {
 	 * con cada acci�n
 	 */
 	private void updateVar() {
-		double k = 5000;
+		double k = 200000;
 		this.alpha = (this.defaultVarInit * k / (k + timer));
 		this.epsilon = ((this.defaultVarInit) * k / (k + timer));
-		if (this.epsilonInicial == -1)
+		if (this.epsilonInicial == -1) {
 			this.epsilonInicial = this.epsilon;
+			System.out.println("Initial epsilon: " + this.epsilonInicial);
+		}
 
-		System.out.println("epsilon: " + this.epsilon);
+//		System.out.println("epsilon: " + this.epsilon);
 		timer++;
 	}
 
@@ -196,7 +198,7 @@ public class QLearning {
 	 * @param currentState Estado actual
 	 * @return Devuelve una acci�n
 	 */
-	public ACTIONS nextAction(STATES currentState) {
+	public ACTIONS nextAction(int currentState) {
 		Random rd = new Random(System.currentTimeMillis());
 		double randomNumber = Math.abs(rd.nextDouble());
 
@@ -214,8 +216,8 @@ public class QLearning {
 	 * @param state Estado a seleccionar
 	 * @return Devuelve una acci�n
 	 */
-	public ACTIONS getBestAction(STATES state) {
-		int i = states.indexOf(state);
+	public ACTIONS getBestAction(int state) {
+		int i = state;
 
 		ArrayList<Integer> candidatos = new ArrayList<Integer>();
 
@@ -248,8 +250,8 @@ public class QLearning {
 	 * @param currentState Estado a seleccionar
 	 * @return Devuelve una acci�n
 	 */
-	public ACTIONS nextOnlyOneBestAction(STATES currentState) {
-		int i = states.indexOf(currentState);
+	public ACTIONS nextOnlyOneBestAction(int currentState) {
+		int i = currentState;
 
 		double maxVal = -Double.MAX_VALUE;
 		int indexAction = 0;

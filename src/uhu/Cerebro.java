@@ -4,8 +4,14 @@
 package uhu;
 
 import java.awt.Dimension;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 
 import core.game.StateObservation;
 import ontology.Types.ACTIONS;
@@ -33,8 +39,9 @@ public class Cerebro {
 
 	private Mapa mapa;
 	private QLearning qlearning;
-	private STATES currentState;
-	private STATES lastState;
+	private HashMap<String, Integer> hashmap;
+	private int currentState;
+	private int lastState;
 
 	private ACTIONS lastAction;
 
@@ -58,15 +65,17 @@ public class Cerebro {
 
 		this.mapa = new Mapa(dim.width / bloque, dim.height / bloque, bloque, percepcion);
 
-		this.currentState = STATES.lanzando_cigarro;
-		this.lastState = STATES.lanzando_cigarro;
+		this.loadHashMap("src/uhu/Juego03/StateGenerator/statesV2");
+	
+		this.currentState = 0;
+		this.lastState = 0;
 
 		this.lastAction = ACTIONS.ACTION_USE;
 
-		System.out.println("N ESTADOS: " + getStates().size());
-		System.out.println("N ACCIONES: " + getActions().size());
+//		System.out.println("N ESTADOS: " + getStates().size());
+//		System.out.println("N ACCIONES: " + getActions().size());
 
-		this.qlearning = new QLearning(getStates(), getActions(), new String("QTABLE.txt"));
+		this.qlearning = new QLearning(getStates(), getActions(), new String("/src/uhu/mdp/resources/QTABLE.txt"));
 
 		this.reward = 0;
 		this.globalReward = 0;
@@ -145,7 +154,7 @@ public class Cerebro {
 		this.lastAction = this.qlearning.nextOnlyOneBestAction(currentState);
 //		
 //		this.mapa.visualiza();
-		System.out.println("\nEstado: " + this.currentState);
+//		System.out.println("\nEstado: " + this.currentState);
 
 		return lastAction;
 	}
@@ -157,10 +166,13 @@ public class Cerebro {
 	 * @return ACTIONS : devuelve una accion
 	 */
 	public ACTIONS entrenar(StateObservation percepcion) {
-		double reward = getReward(lastState, lastAction, currentState);
+		
+		double reward = getReward(lastAction, this.mapa);
 		this.qlearning.update(lastState, lastAction, currentState, reward);
 		this.lastAction = this.qlearning.nextAction(currentState);
-
+		System.out.println("Accion: " + this.lastAction.toString());
+		
+		
 		return lastAction;
 	}
 
@@ -201,6 +213,7 @@ public class Cerebro {
 	public void saveEpsilon(String path) {
 		this.qlearning.saveEpsilon(path);
 	}
+	
 
 	// =============================================================================
 	// AUXILIARES
@@ -211,24 +224,13 @@ public class Cerebro {
 	 * 
 	 * @return ArrayList STATES : devuelve un ArrayList con los estados
 	 */
-	private ArrayList<STATES> getStates() {
-		return new ArrayList<STATES>(Arrays.asList(STATES.lanzando_cigarro, STATES.huyendo_Earriba,
-				STATES.huyendo_Eabajo, STATES.huyendo_Eizquierda, STATES.huyendo_Ederecha,
-				STATES.huyendo_Eabajo_esquina0, STATES.huyendo_Ederecha_esquina0, STATES.huyendo_Eabajo_esquina1,
-				STATES.huyendo_Eizquierda_esquina1, STATES.huyendo_Earriba_esquina2, STATES.huyendo_Ederecha_esquina2,
-				STATES.huyendo_Earriba_esquina3, STATES.huyendo_Eizquierda_esquina3,
-				STATES.huyendo_Eabajo_Barriba_Lizquierdo, STATES.huyendo_Eizquierda_Barriba_Lizquierdo,
-				STATES.huyendo_Ederecha_Barriba_Lizquierdo, STATES.huyendo_Eabajo_Barriba_Lderecho,
-				STATES.huyendo_Eizquierda_Barriba_Lderecho, STATES.huyendo_Ederecha_Barriba_Lderecho,
-				STATES.huyendo_Earriba_Babajo_Lizquierdo, STATES.huyendo_Eizquierda_Babajo_Lizquierdo,
-				STATES.huyendo_Ederecha_Babajo_Lizquierdo, STATES.huyendo_Earriba_Babajo_Lderecho,
-				STATES.huyendo_Eizquierda_Babajo_Lderecho, STATES.huyendo_Ederecha_Babajo_Lderecho,
-				STATES.huyendo_Earriba_Bizquierda_Lsuperior, STATES.huyendo_Eabajo_Bizquierda_Lsuperior,
-				STATES.huyendo_Ederecha_Bizquierda_Lsuperior, STATES.huyendo_Earriba_Bizquierda_Linferior,
-				STATES.huyendo_Eabajo_Bizquierda_Linferior, STATES.huyendo_Ederecha_Bizquierda_Linferior,
-				STATES.huyendo_Earriba_Bderecha_Lsuperior, STATES.huyendo_Eabajo_Bderecha_Lsuperior,
-				STATES.huyendo_Eizquierda_Bderecha_Lsuperior, STATES.huyendo_Earriba_Bderecha_Linferior,
-				STATES.huyendo_Eabajo_Bderecha_Linferior, STATES.huyendo_Eizquierda_Bderecha_Linferior));
+	private ArrayList<Integer> getStates() {
+		ArrayList<Integer> auxList = new ArrayList();
+		for (int i = 0; i < this.hashmap.size(); i++) {
+			auxList.add(i);
+		}
+		
+		return auxList;
 	}
 
 	/**
@@ -243,14 +245,46 @@ public class Cerebro {
 
 	/**
 	 * Calcula la recompensa para la ultima accion realizada
-	 * 
-	 * @param lastState    Estado anterior
 	 * @param lastAction   ultima accion realizada
-	 * @param currentState Estado actual
+	 * @param m Almacena el estado actual y el anterior
 	 * @return double : devuelve la recompensa calculada
 	 */
-	private double getReward(STATES lastState, ACTIONS lastAction, STATES currentState) {
-		return 0;
+	private double getReward(ACTIONS lastAction, Mapa m) {
+		double reward = -20;
+		
+		// RECOMPENSAS
+		// Recompensamos si tras utilizar el cigarro calmamos a un molesto
+		if(lastAction.equals(ACTIONS.ACTION_USE) && (m.getCalmadosCurrentSize() > m.getCalmadosLastSize()))
+			reward += 300;
+		
+		// Recompensamos si nos acercamos al molesto mas cercano
+		if(m.getNearestMolestoCurrentDistanceFrom(m.getAvatarCurrentPosition()) 
+				< m.getNearestMolestoLastDistanceFrom(m.getAvatarLastPosition()))
+			reward += 20;
+		else
+			reward -= 20;
+		// Recompensamos si estamos muy cerca del molesto mas cercano
+		if(m.getNearestMolestoCurrentDistanceFrom(m.getAvatarCurrentPosition()) <= m.getDistanciaCerca())
+			reward += 80;
+		
+		// Recompensamos si nos alejamos del enemigo
+		if(m.getEnemyCurrentDistanceFrom(m.getAvatarCurrentPosition()) 
+				> m.getEnemyLastDistanceFrom(m.getAvatarCurrentPosition()))
+			reward += 40;
+		
+		// Recompensamos si huye cuando estaba cerca del enemigo
+		if(m.getEnemyCurrentDistanceFrom(m.getAvatarCurrentPosition()) > m.getEnemyLastDistanceFrom(m.getAvatarLastPosition()) 
+				&& m.getEnemyLastDistanceFrom(m.getAvatarLastPosition()) <= m.getDistanciaCerca())
+			reward += 100;
+		
+		// CASTIGOS
+		// Castigamos si tras realizar la ultima accion morimos
+		if(m.isGameOverWith(lastAction)) 
+			reward -= 500;
+		
+		System.out.println("Recompensa: " + reward);
+//		System.out.println("Recompensa: " + reward);
+		return reward;
 	}
 
 	public double calculaRotacion(Vector2d c) {
@@ -259,337 +293,137 @@ public class Cerebro {
 		return Math.toDegrees(angulo);
 	}
 
-	// =============================================================================
-	// METODOS PARA PREGUNTAS
-	// =============================================================================
-
-	private int TengoEnemigoCerca() {
-		if (this.mapa.getDistanciaCerca() >= this.mapa
-				.getEnemyCurrentDistanceFrom(this.mapa.getAvatarCurrentPosition())) {
-			double grados = this.calculaRotacion(this.mapa.getEnemyCurrentPosition());
-			if (grados > 45 && grados <= 135) {
-				return 0;
-			} else if (grados < -45 && grados >= -135) {
-				return 1;
-			} else if (grados >= 0 && grados <= 45 || grados <= 0 && grados >= -45) {
-				return 2;
-			} else {
-				return 3;
-			}
-
-//			else if (grados >= 135 && grados <= 180 || grados <= -135 && grados >= -180) {
-//				return 3;
-//			}
-		}
-		return -1;
-	}
-
-	private int EstoyEnEsquina() {
-
-		// Cualquier esquina del mapa
-		int x = (int) this.mapa.getAvatarCurrentPosition().x / this.mapa.getBloque();
-		int y = (int) this.mapa.getAvatarCurrentPosition().y / this.mapa.getBloque();
-
-		if (this.mapa.getNodo(x - 1, y).getEstado().equals(MURO)
-				&& this.mapa.getNodo(x, y - 1).getEstado().equals(MURO)) {
-			return 0;
-		} else if (this.mapa.getNodo(x + 1, y).getEstado().equals(MURO)
-				&& this.mapa.getNodo(x, y - 1).getEstado().equals(MURO)) {
-			return 1;
-		} else if (this.mapa.getNodo(x - 1, y).getEstado().equals(MURO)
-				&& this.mapa.getNodo(x, y + 1).getEstado().equals(MURO)) {
-			return 2;
-		} else if (this.mapa.getNodo(x + 1, y).getEstado().equals(MURO)
-				&& this.mapa.getNodo(x, y + 1).getEstado().equals(MURO)) {
-			return 3;
-		}
-		return -1;
-
-//		// Esquinas de los picos del mapa
-//		if (this.mapa.getNodo(1, 1).getEstado().equals(AVATAR)) {
-//			return 0;
-//		} else if (this.mapa.getNodo(this.mapa.getAncho() - 2, 1).getEstado().equals(AVATAR)) {
-//			return 1;
-//		} else if (this.mapa.getNodo(1, this.mapa.getAlto() - 2).getEstado().equals(AVATAR)) {
-//			return 2;
-//		} else if (this.mapa.getNodo(this.mapa.getAncho() - 2, this.mapa.getAlto() - 2).getEstado().equals(AVATAR)) {
-//			return 3;
-//		}
-//		return -1;
-	}
-
-	private int EstoyEnPeligro() {
-		if (this.mapa.getDistanciaPeligro() >= this.mapa
-				.getEnemyCurrentDistanceFrom(this.mapa.getAvatarCurrentPosition())) {
-			double grados = this.calculaRotacion(this.mapa.getEnemyCurrentPosition());
-			if (grados > 45 && grados <= 135) {
-				return 0;
-			} else if (grados < -45 && grados >= -135) {
-				return 1;
-			} else if (grados >= 0 && grados <= 45 || grados <= 0 && grados >= -45) {
-				return 2;
-			} else {
-				return 3;
-			}
-
-//			else if (grados >= 135 && grados <= 180 || grados <= -135 && grados >= -180) {
-//				return 3;
-//			}
-		}
-		return -1;
-	}
-
-	private int TengoBorde() {
-		int x = (int) this.mapa.getAvatarCurrentPosition().x / this.mapa.getBloque();
-		int y = (int) this.mapa.getAvatarCurrentPosition().y / this.mapa.getBloque();
-
-		if (y == 1) {
-			return 0;
-		} else if (y == this.mapa.getAlto() - 2) {
-			return 1;
-		} else if (x == 1) {
-			return 2;
-		} else if (x == this.mapa.getAncho() - 2) {
-			return 3;
-		}
-		return -1;
-	}
-
-	private int LadoHorizontal() {
-		int x = (int) this.mapa.getAvatarCurrentPosition().x / this.mapa.getBloque();
-		int y = (int) this.mapa.getAvatarCurrentPosition().y / this.mapa.getBloque();
-
-		int xleft = x;
-		int xright = x;
-
-		for (int i = x - 1; i >= 0; i--) {
-			if (this.mapa.getNodo(i, y).getEstado().equals(MURO)) {
-				xleft = i;
-				break;
-			}
-		}
-
-		for (int i = x + 1; i < this.mapa.getAncho(); i++) {
-			if (this.mapa.getNodo(i, y).getEstado().equals(MURO)) {
-				xright = i;
-				break;
-			}
-		}
-
-		double distLeft = this.mapa.getAvatarCurrentPosition().dist((double) xleft, (double) y);
-		double distRight = this.mapa.getAvatarCurrentPosition().dist((double) xright, (double) y);
-
-		if (distLeft < distRight) {
-			return 0;
-		}
-		return -1;
-	}
-
-	private int LadoVertical() {
-		int x = (int) this.mapa.getAvatarCurrentPosition().x / this.mapa.getBloque();
-		int y = (int) this.mapa.getAvatarCurrentPosition().y / this.mapa.getBloque();
-
-		int yup = y;
-		int ydown = y;
-
-		for (int i = y - 1; i >= 0; i--) {
-			if (this.mapa.getNodo(x, i).getEstado().equals(MURO)) {
-				yup = i;
-				break;
-			}
-		}
-
-		for (int i = y + 1; i < this.mapa.getAlto(); i++) {
-			if (this.mapa.getNodo(x, i).getEstado().equals(MURO)) {
-				ydown = i;
-				break;
-			}
-		}
-
-		double distUp = this.mapa.getAvatarCurrentPosition().dist((double) x, (double) yup);
-		double distDown = this.mapa.getAvatarCurrentPosition().dist((double) x, (double) ydown);
-
-		if (distUp < distDown) {
-			System.out.println("MAS CERCA DE ARRIBA ---------------");
-			return 0;
-		}
-		return -1;
-	}
 
 	// =============================================================================
 	// COMPRUEBA ESTADO
 	// =============================================================================
 
-	private STATES compruebaEstado() {
-
-		switch (TengoEnemigoCerca()) {
-		case 0: // Earriba - Enemigo Arriba del avatar
-			switch (EstoyEnEsquina()) {
-			case 2: // esquina2 - Esquina Inferior Izquierda
-				return STATES.huyendo_Earriba_esquina2;
-			case 3: // esquina3 - Esquina Inferior Derecha
-				return STATES.huyendo_Earriba_esquina3;
-			default:
-				switch (TengoBorde()) {
-				case 1: // Babajo - Borde debajo
-					switch (LadoHorizontal()) {
-					case 0: // Lizquierdo - Esta mas cerca del lado izquierdo
-						return STATES.huyendo_Earriba_Babajo_Lizquierdo;
-					default: // Lderecho - Esta mas cerca del lado derecho
-						return STATES.huyendo_Earriba_Babajo_Lderecho;
-					}
-				case 2: // Bizquierda - Borde en la izquierda
-					switch (LadoVertical()) {
-					case 0: // Lsuperior - Esta mas cerca de la parte superior
-						return STATES.huyendo_Earriba_Bizquierda_Lsuperior;
-					default: // Linferior - Esta mas cerca de la parte inferior
-						return STATES.huyendo_Earriba_Bizquierda_Linferior;
-					}
-				case 3:
-					switch (LadoVertical()) {
-					case 0: // Lsuperior - Esta mas cerca de la parte superior
-						return STATES.huyendo_Earriba_Bderecha_Lsuperior;
-					default: // Linferior - Esta mas cerca de la parte inferior
-						return STATES.huyendo_Earriba_Bderecha_Linferior;
-					}
-				default:
-					switch (EstoyEnPeligro()) {
-					case 0:
-					case 1:
-					case 2:
-					case 3:
-						return STATES.huyendo_Earriba;
-					default:
-						return STATES.lanzando_cigarro;
-					}
-				}
-			}
-		case 1: // Eabajo - Enemigo Abajo del avatar
-			switch (EstoyEnEsquina()) {
-			case 0: // esquina0 - Esquina Superior Izquierda
-				return STATES.huyendo_Eabajo_esquina0;
-			case 1: // esquina0 - Esquina Superior Derecha
-				return STATES.huyendo_Eabajo_esquina1;
-			default:
-				switch (TengoBorde()) {
-				case 0: // Barriba - Borde arriba
-					switch (LadoHorizontal()) {
-					case 0: // Lizquierdo - Esta mas cerca del lado izquierdo
-						return STATES.huyendo_Eabajo_Barriba_Lizquierdo;
-					default: // Lderecho - Esta mas cerca del lado derecho
-						return STATES.huyendo_Eabajo_Barriba_Lderecho;
-					}
-				case 2: // Bizquierda - Borde en la izquierda
-					switch (LadoVertical()) {
-					case 0: // Lsuperior - Esta mas cerca de la parte superior
-						return STATES.huyendo_Eabajo_Bizquierda_Lsuperior;
-					default: // Linferior - Esta mas cerca de la parte inferior
-						return STATES.huyendo_Eabajo_Bizquierda_Linferior;
-					}
-				case 3:
-					switch (LadoVertical()) {
-					case 0: // Lsuperior - Esta mas cerca de la parte superior
-						return STATES.huyendo_Eabajo_Bderecha_Lsuperior;
-					default: // Linferior - Esta mas cerca de la parte inferior
-						return STATES.huyendo_Eabajo_Bderecha_Linferior;
-					}
-				default:
-					switch (EstoyEnPeligro()) {
-					case 0:
-					case 1:
-					case 2:
-					case 3:
-						return STATES.huyendo_Eabajo;
-					default:
-						return STATES.lanzando_cigarro;
-					}
-				}
-			}
-		case 2: // Eizquierda - Enemigo Izquierda del avatar
-			switch (EstoyEnEsquina()) {
-			case 1: // esquina1 - Esquina Superior Derecha
-				return STATES.huyendo_Eizquierda_esquina1;
-			case 3: // esquina3 - Esquina Inferior Derecha
-				return STATES.huyendo_Eizquierda_esquina3;
-			default:
-				switch (TengoBorde()) {
-				case 0: // Barriba - Borde arriba
-					switch (LadoHorizontal()) {
-					case 0: // Lizquierdo - Esta mas cerca del lado izquierdo
-						return STATES.huyendo_Eizquierda_Barriba_Lizquierdo;
-					default: // Lderecho - Esta mas cerca del lado derecho
-						return STATES.huyendo_Eizquierda_Barriba_Lderecho;
-					}
-				case 1: // Babajo - Borde debajo
-					switch (LadoHorizontal()) {
-					case 0: // Lizquierdo - Esta mas cerca del lado izquierdo
-						return STATES.huyendo_Eizquierda_Babajo_Lizquierdo;
-					default: // Lderecho - Esta mas cerca del lado derecho
-						return STATES.huyendo_Eizquierda_Babajo_Lderecho;
-					}
-				case 3:
-					switch (LadoVertical()) {
-					case 0: // Lsuperior - Esta mas cerca de la parte superior
-						return STATES.huyendo_Eizquierda_Bderecha_Lsuperior;
-					default: // Linferior - Esta mas cerca de la parte inferior
-						return STATES.huyendo_Eizquierda_Bderecha_Linferior;
-					}
-				default:
-					switch (EstoyEnPeligro()) {
-					case 0:
-					case 1:
-					case 2:
-					case 3:
-						return STATES.huyendo_Eizquierda;
-					default:
-						return STATES.lanzando_cigarro;
-					}
-				}
-			}
-		case 3: // Ederecha - Enemigo Derecha del avatar
-			switch (EstoyEnEsquina()) {
-			case 0: // esquina0 - Esquina Superior Izquierda
-				return STATES.huyendo_Ederecha_esquina0;
-			case 2: // esquina2 - Esquina Inferior Izquierda
-				return STATES.huyendo_Ederecha_esquina2;
-			default:
-				switch (TengoBorde()) {
-				case 0: // Barriba - Borde arriba
-					switch (LadoHorizontal()) {
-					case 0: // Lizquierdo - Esta mas cerca del lado izquierdo
-						return STATES.huyendo_Ederecha_Barriba_Lizquierdo;
-					default: // Lderecho - Esta mas cerca del lado derecho
-						return STATES.huyendo_Ederecha_Barriba_Lderecho;
-					}
-				case 1: // Babajo - Borde debajo
-					switch (LadoHorizontal()) {
-					case 0: // Lizquierdo - Esta mas cerca del lado izquierdo
-						return STATES.huyendo_Ederecha_Babajo_Lizquierdo;
-					default: // Lderecho - Esta mas cerca del lado derecho
-						return STATES.huyendo_Ederecha_Babajo_Lderecho;
-					}
-				case 2: // Bizquierda - Borde en la izquierda
-					switch (LadoVertical()) {
-					case 0: // Lsuperior - Esta mas cerca de la parte superior
-						return STATES.huyendo_Ederecha_Bizquierda_Lsuperior;
-					default: // Linferior - Esta mas cerca de la parte inferior
-						return STATES.huyendo_Ederecha_Bizquierda_Linferior;
-					}
-				default:
-					switch (EstoyEnPeligro()) {
-					case 0:
-					case 1:
-					case 2:
-					case 3:
-						return STATES.huyendo_Ederecha;
-					default:
-						return STATES.lanzando_cigarro;
-					}
-				}
-			}
-		default:
-			return STATES.lanzando_cigarro;
+	/**
+	 * Comprueba el estado en el que se encuentra el agente
+	 * @return Devuelve el numero asignado que tiene el agente
+	 */
+	private int compruebaEstado() {
+		String clave = "", aux;
+		double auxDouble;
+		Vector2d auxVector;
+		/*
+		 * Disposicion de caracteres
+		 * 1.- Orientacion -> coord[]
+		 * 2.- Cercania del molesto mas cercano -> proximity[]
+		 * 3.- Posicion del moslesto respecto al jugador -> coord[]
+		 * 4.- Cercania del enemigo -> proximity[]
+		 * 5.- Posicion del enemigo respecto al jugador -> coord[]
+		 * Resto.- Combinaciones de elementos en el mapa
+		 */
+		
+		// 1.- Orientacion
+		clave += this.vectorToCoords(this.mapa.getOrientacionAvatar());
+		
+		// 2.- Cercania del molesto mas cercano
+		auxDouble = this.mapa.getNearestMolestoCurrentDistanceFrom(this.mapa.getAvatarCurrentPosition());
+		
+		// Comprobamos que haya NPCs molestos. Sino, cogemos un NPC calmado
+		if(auxDouble != -1) {
+			auxDouble = this.mapa.getFirstCalmadoCurrentDistanceFrom(this.mapa.getAvatarCurrentPosition());
+//			System.out.println("No hay molesto");
 		}
+		if(auxDouble<this.mapa.getDistanciaCerca())
+			aux = Constantes.proximity[0]; // Cerca
+		else 
+			aux = Constantes.proximity[1]; // Lejos
+		
+		clave += aux;
+		
+		// 3.- Posicion del molesto respecto al jugador
+		auxVector = this.mapa.getNearestMolestoCurrentPosition();
+		if(auxVector == null)
+			auxVector = this.mapa.getFirstCalmadoCurrentPosition();
+		clave += this.vectorToCoords(auxVector);
+		
+		// 4.- Cercania del enemigo
+		auxDouble = this.mapa.getEnemyCurrentDistanceFrom(this.mapa.getAvatarCurrentPosition());
+		if(auxDouble<this.mapa.getDistanciaCerca())
+			aux = Constantes.proximity[0]; // Cerca
+		else 
+			aux = Constantes.proximity[1]; // Lejos
+		
+		clave += aux;
+		
+		// 5.- Posicion del enemigo respecto al jugador
+		auxVector = this.mapa.getEnemyCurrentPosition();
+		clave += this.vectorToCoords(auxVector);
+		
+		// Resto.- Combinaciones de elementos en el mapa
+//		clave += this.mapa.getValuesFromAvatarNeighbors();
+		
+		System.out.println("Clave generada: " + clave + " - Valor: " + this.hashmap.get(clave));
+		
+		if(this.hashmap.containsKey(clave))
+			return this.hashmap.get(clave);
+		else
+			return this.hashmap.get(Constantes.defaultKey);
+	}
+	
+	private String vectorToCoords(Vector2d v) {
+		String aux = "";
+		
+		if(v.x == 0.0 && v.y == 0.0)
+			aux = Constantes.coord[0]; // Norte
+		else 
+			if(v.x == 0.0 && v.y == 1.0)
+				aux = Constantes.coord[1]; // Sur
+			else
+				if(v.x == 1.0 && v.y == 0.0)
+					aux = Constantes.coord[3]; // Oeste
+				else
+					aux = Constantes.coord[2]; // Este
 
+		
+		return aux;
+	}
+	
+	/**
+	 * Carga la lista de claves en el hashmap de la clase
+	 * @param path Ruta donde se encuentra la lista de claves
+	 */
+	private void loadHashMap(String path) {
+		this.hashmap = new HashMap<>();
+		ArrayList<String> auxList = this.readHashTable(path);
+		for (int i = 0; i < auxList.size(); i++) {
+			this.hashmap.put(auxList.get(i), i);
+		}
+	}
+	
+	/**
+	 * Lee un fichero statesV 
+	 * @param path Ruta donde se encuentra la lista de claves 
+	 * @return Lista de claves leidas
+	 */
+	private ArrayList<String> readHashTable(String path) {
+		ArrayList<String> auxList = new ArrayList();
+		try {
+			FileReader fichero = new FileReader(path); // FileReader sierve para leer ficheros
+			BufferedReader b = new BufferedReader(fichero); // BufferReader sirve para leer texto de una entrada de
+															// caracteres
+			String aux; // Variable donde guardar las lecturas de fichero de forma momentanea
+			ArrayList<String> stringFichero = new ArrayList<>(); // Almacena cada linea del fichero
+			String[] parts; // Para dividir Strings
+
+			// Mientras pueda leer la siguiente linea, sigue leyendo, hace la asignacion
+			// dentro del if
+			while ((aux = b.readLine()) != null) {
+				stringFichero.add(aux);
+			}
+
+			fichero.close();
+			for (int i = 0; i < stringFichero.size(); i++) {
+				auxList.add(stringFichero.get(i));
+			}
+		} catch (IOException e) {
+			System.out.println("An error occurred.");
+			e.printStackTrace();
+		}
+		
+		return auxList;
 	}
 }

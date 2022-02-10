@@ -47,19 +47,19 @@ public class AgentPlayer extends AbstractPlayer {
 
 		c.percibe(percepcion);
 		ACTIONS accion = c.pensar(percepcion);
-		try {
-			Thread.sleep(60);
-		} catch (InterruptedException e) {
-			System.out.println("Error en sleep");
-		}
+//		try {
+//			Thread.sleep(60);
+//		} catch (InterruptedException e) {
+//			System.out.println("Error en sleep");
+//		}
 
 		return accion;
 	}
 
 	@Override
 	public void result(StateObservation stateObs, ElapsedCpuTimer elapsedCpuTimer) {
-		c.writeTable("QTABLE.txt");
-		c.saveTimer();
+//		c.writeTable("src/uhu/mdp/resources/QTABLE.txt");
+//		c.saveTimer();
 //		System.out.println("PUNTUACION: "+ c.getGR());
 	}
 

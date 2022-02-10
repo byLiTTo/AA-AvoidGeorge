@@ -45,6 +45,11 @@ public final class Constantes {
 	public static final String ENEMIGO = "#";
 	public static final int enemy_cate = 3;
 	public static final int enemy_tipo = 7;
+	
+	public static final String[] elements = {VACIO,MURO,ENEMIGO};
+	public static final String[] coord = {"n","s","e","o"};
+	public static final String[] proximity = {"c","l"};
+	public static final String defaultKey = "ddddddddd";
 
 	// =============================================================================
 	// OPCIONES DE METODOS

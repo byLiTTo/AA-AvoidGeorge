@@ -48,20 +48,28 @@ public class AgentTrainer extends AbstractPlayer {
 
 		c.percibe(percepcion);
 		ACTIONS accion = c.entrenar(percepcion);
-		try {
-			Thread.sleep(260);
-		} catch (InterruptedException e) {
-			System.out.println("Error en sleep");
-		}
+//		System.out.println("Accion: " + accion.toString()+"\n");
+//		try {
+//			Thread.sleep(260);
+//		} catch (InterruptedException e) {
+//			System.out.println("Error en sleep");
+//		}
+		
 		return accion;
 	}
 
 	@Override
 	public void result(StateObservation stateObs, ElapsedCpuTimer elapsedCpuTimer) {
-		c.writeTable("QTABLE.txt");
+		c.writeTable("src/uhu/mdp/resources/QTABLE.txt");
 		c.saveTimer();
-		c.saveEpsilon("Epsilon.csv");
+		c.saveEpsilon("src/uhu/mdp/resources/epsilon.csv");
+		
 //		System.out.println("PUNTUACION: "+ c.getGR());
 	}
 
+	public boolean isGameOverWith(StateObservation stateObs, ACTIONS action) {
+		StateObservation aux = stateObs.copy();
+		aux.advance(action);
+		return aux.isGameOver();
+	}
 }

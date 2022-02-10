@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 import core.game.Observation;
 import core.game.StateObservation;
+import ontology.Types.ACTIONS;
 import tools.Vector2d;
 import uhu.Constantes;
 import uhu.Constantes.Visualizaciones;
@@ -34,9 +35,13 @@ public class Mapa {
 
 	private Vector2d avatarCurrentPosition;
 	private Vector2d avatarLastPosition;
+	private Casilla avatarCurrentCasilla;
 
 	private Observation enemyCurrentObservation;
 	private Observation enemyLastObservation;
+	
+	private Observation nearestMolestoCurrentObservation;
+	private Observation nearestMolestoLastObservation;
 
 	private ArrayList<Observation> calmadosCurrentObservation;
 	private ArrayList<Observation> calmadosLastObservation;
@@ -46,6 +51,7 @@ public class Mapa {
 
 	private double distanciaCerca;
 	private double distanciaPeligro;
+	private double gameScore;
 
 	// =============================================================================
 	// CONSTRUCTORES
@@ -69,20 +75,24 @@ public class Mapa {
 		this.tablero = new ArrayList<ArrayList<Casilla>>();
 
 		this.avatarCurrentPosition = percepcion.getAvatarPosition();
-
+		
 		this.enemyCurrentObservation = new Observation();
 
 		this.calmadosCurrentObservation = new ArrayList<Observation>();
 
 		this.molestosCurrentObservation = new ArrayList<Observation>();
+		
+		
+		this.distanciaCerca = this.bloque * 2;
+		this.distanciaPeligro = this.bloque * 4;
 
-		this.distanciaCerca = this.bloque * 2.5;
-		this.distanciaPeligro = this.bloque * 4.5;
-
-		System.out.println(this.bloque);
+//		System.out.println(this.bloque);
 		percepcion.getFromAvatarSpritesPositions();
 
 		actualiza(percepcion, Visualizaciones.APAGADA);
+		
+		// Nuevo
+		this.nearestMolestoLastObservation = this.nearestMolestoCurrentObservation;
 	}
 
 	// =============================================================================
@@ -146,13 +156,57 @@ public class Mapa {
 	public double getEnemyLastDistanceFrom(Vector2d position) {
 		return this.enemyLastObservation.position.sqDist(position) / this.bloque;
 	}
-
+	
+	public Vector2d getNearestMolestoCurrentPosition() {
+		if(this.molestosCurrentObservation.size() > 0)
+			return this.nearestMolestoCurrentObservation.position;
+		else
+			return null;
+	}
+	
+	public double getNearestMolestoCurrentDistanceFrom(Vector2d position) {
+		if(this.molestosCurrentObservation.size() > 0)
+			return this.nearestMolestoCurrentObservation.position.sqDist(position) / this.bloque;
+		else
+			return -1.0;
+	}
+	
+	public double getNearestMolestoLastDistanceFrom(Vector2d position) {
+		if(this.molestosLastObservation.size() > 0)
+			return this.nearestMolestoCurrentObservation.position.sqDist(position) / this.bloque;
+		else
+			return -1.0;
+	}
+	
+	public Vector2d getNearestMolestoLastPosition() {
+		if(this.molestosLastObservation.size() > 0)
+			return this.nearestMolestoLastObservation.position;
+		else
+			return null;
+	}
+	
 	public int getCalmadosCurrentSize() {
 		return this.calmadosCurrentObservation.size();
+	}
+	
+	public Vector2d getFirstCalmadoCurrentPosition() {
+		return this.calmadosCurrentObservation.get(0).position;
+	}
+	
+	public double getFirstCalmadoCurrentDistanceFrom(Vector2d position) {
+		return this.calmadosCurrentObservation.get(0).position.sqDist(position) / this.bloque;	
 	}
 
 	public int getCalmadosLastSize() {
 		return this.calmadosLastObservation.size();
+	}
+	
+	public Vector2d getFirstCalmadoLastPosition() {
+		return this.calmadosLastObservation.get(0).position;
+	}
+	
+	public double getFirstCalmadoLastDistanceFrom(Vector2d position) {
+		return this.calmadosLastObservation.get(0).position.sqDist(position) / this.bloque;	
 	}
 
 	public int getMolestosCurrentSize() {
@@ -169,6 +223,29 @@ public class Mapa {
 
 	public double getDistanciaPeligro() {
 		return this.distanciaPeligro;
+	}
+	
+	public double getGameScore() {
+		return this.gameScore;
+	}
+	
+	public String getValuesFromAvatarNeighbors() {
+		String auxString = "";
+		// Se debe devolver un string con el contenido de los vecinos, el orden es: arriba, abajo, izquierda y derecha
+		auxString += this.avatarCurrentCasilla.getVecinoArriba().getEstado();
+		auxString += this.avatarCurrentCasilla.getVecinoAbajo().getEstado();
+		auxString += this.avatarCurrentCasilla.getVecinoIzquierda().getEstado();
+		auxString += this.avatarCurrentCasilla.getVecinoDerecha().getEstado();
+		
+		auxString = auxString.replaceAll(Constantes.CALMADO, Constantes.VACIO);
+		auxString = auxString.replaceAll(Constantes.MOLESTO, Constantes.VACIO);
+		return auxString;
+	}
+	
+	public boolean isGameOverWith(ACTIONS action) {
+		StateObservation aux = this.percepcion.copy();
+		aux.advance(action);
+		return aux.isGameOver();
 	}
 
 	/**
@@ -212,10 +289,30 @@ public class Mapa {
 		actualizaAvatar();
 		actualizaNPC();
 		asignaVecinos();
-
+		
+		// Nuevo
+		this.setAvatarPosition(this.avatarCurrentPosition);
+		this.actualizaNearestMolestoCurrentObservation();
 		if (opcion == Visualizaciones.ENCENDIDA) {
 			visualiza();
 		}
+	}
+	
+	private void actualizaNearestMolestoCurrentObservation() {
+		int nearestMolesto = -1;
+		double nearestDistance = Double.POSITIVE_INFINITY;
+		double aux;
+		for (int i = 0; i < this.molestosCurrentObservation.size(); i++) {
+			aux = this.molestosCurrentObservation.get(i).position.sqDist(this.avatarCurrentPosition) / this.bloque;
+			if(aux < nearestDistance) {
+				nearestMolesto = i;
+				nearestDistance = aux;
+			}	
+		}
+		
+		this.nearestMolestoLastObservation = this.nearestMolestoCurrentObservation;
+		if(nearestMolesto > -1)
+			this.nearestMolestoCurrentObservation = this.molestosCurrentObservation.get(nearestMolesto);
 	}
 
 	/**
@@ -262,6 +359,7 @@ public class Mapa {
 
 		this.tablero.get(x).get(y).setEstado(AVATAR);
 		this.avatarCurrentPosition = percepcion.getAvatarPosition();
+		this.setAvatarPosition(this.avatarCurrentPosition);
 	}
 
 	/**
@@ -335,6 +433,13 @@ public class Mapa {
 		}
 	}
 
+	private void setAvatarPosition(Vector2d pos) {
+		int x = (int) Math.ceil(pos.x / this.bloque);
+		int y = (int) Math.ceil(pos.y / this.bloque);
+
+		this.avatarCurrentCasilla = this.tablero.get(x).get(y);
+	}
+	
 	/**
 	 * Visualiza en la consola el mapa, representando el tipo de estado de cada
 	 * casilla, es decir, su contenido.
